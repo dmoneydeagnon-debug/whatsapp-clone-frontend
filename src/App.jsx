@@ -3,6 +3,8 @@ import io from 'socket.io-client';
 import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
 
+const API_URL = "https://whatsapp-clone-backend-4cpt.onrender.com";
+
 function App() {
   const [socket, setSocket] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -21,7 +23,7 @@ function App() {
 
   // Initialize Socket
   useEffect(() => {
-    const newSocket = io('https://whatsapp-clone-backend-4cpt.onrender.com');
+    const newSocket = io(API_URL);
     setSocket(newSocket);
     return () => newSocket.close();
   }, []);
@@ -67,7 +69,7 @@ function App() {
   // Fetch users
   useEffect(() => {
     if (token) {
-      axios.get('http://localhost:5001/api/auth/users', {
+      axios.get(`${API_URL}/api/auth/users`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then(res => setChats(res.data))
@@ -91,12 +93,35 @@ function App() {
     if (!socket) return;
 
     const handleMessage = (message) => {
-      const chatId = message.sender === user?._id ? message.receiver : message.sender;
-      setChatMessages(prev => ({
-        ...prev,
-        [chatId]: [...(prev[chatId] || []), message]
-      }));
+      const sendMessage = () => {
+        if(!socket || !messageText.trim() || !selectedChat || !user?._id) return;
+
+        const messageData = {
+          sender: user._id,
+          receiver: selectedChat._id,
+          text: messageText.trim(),
+        };
+
+        socket.emit('sendMessage', messageData);
+        sendMessageText('');
+      };
     };
+
+    useEffect(() => {
+      if (!selectedChat || !token) returns;
+
+      axios.get(`${API_URL}/api/messages/${selectedChat._id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => {
+        setChatMessages(prev => ({
+          ...prev,
+          [selectedChat._id]: res.data
+        }));
+      })
+      .catch(console.error);
+
+    }, [selectedChat]);
 
     socket.on('receiveMessage', handleMessage);
     return () => socket.off('receiveMessage', handleMessage);
@@ -150,7 +175,7 @@ function App() {
           <GoogleLogin
             onSuccess={async (res) => {
               try {
-                const response = await axios.post("http://localhost:5001/api/auth/google", { token: res.credential });
+                const response = await axios.post(`${API_URL}/api/auth/google`, { token: res.credential });
                 localStorage.setItem("token", response.data.token);
                 setToken(response.data.token);
                 setUser(response.data.user);
