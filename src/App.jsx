@@ -40,17 +40,11 @@ function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, selectedChat]);
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    window.location.reload();
-  };
-
   const handleAuth = async (e) => {
     e.preventDefault();
     const endpoint = isLogin ? '/login' : '/register';
     
-    try {
-      const res = await axios.post(`https://whatsapp-clone-backend-4cpt.onrender.com/api/auth${endpoint}`, {
+      const res = await axios.post(`${API_URL}/api/auth${endpoint}`, {
         name,
         email: email.includes('@') ? email : null,
         phone: !email.includes('@') ? email : null,
@@ -60,55 +54,33 @@ function App() {
       localStorage.setItem('token', res.data.token);
       setToken(res.data.token);
       setUser(res.data.user);
+
       if (socket) socket.emit('join', res.data.user._id);
-    } catch (err) {
-      alert(err.response?.data?.msg || 'Login failed');
-    }
-  };
+    };
 
   // Fetch users
   useEffect(() => {
-    if (token) {
-      axios.get(`${API_URL}/api/auth/users`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then(res => setChats(res.data))
-      .catch(console.error);
-    }
+    if (token) return;
+
+    axios.get(`${API_URL}/api/auth/users`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    .then(res => setChats(res.data))
+    .catch(console.error);
   }, [token]);
 
   // Restore user
   useEffect(() => {
-    if (token && !user) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser({ _id: payload.id });
-        if (socket) socket.emit('join', payload.id);
-      } catch (e) {}
-    }
+    if (token && !user) return;
+
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    setUser({ _id: payload.id });
+
+    if (socket) socket.emit('join', payload.id);
   }, [token, socket]);
 
-  // Real-time messages
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleMessage = (message) => {
-      const sendMessage = () => {
-        if(!socket || !messageText.trim() || !selectedChat || !user?._id) return;
-
-        const messageData = {
-          sender: user._id,
-          receiver: selectedChat._id,
-          text: messageText.trim(),
-        };
-
-        socket.emit('sendMessage', messageData);
-        sendMessageText('');
-      };
-    };
-
     useEffect(() => {
-      if (!selectedChat || !token) returns;
+      if (!selectedChat || !token) return;
 
       axios.get(`${API_URL}/api/messages/${selectedChat._id}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -120,31 +92,43 @@ function App() {
         }));
       })
       .catch(console.error);
+      
+      // Real-time messages
+  useEffect(() => {
+    if (!socket || !user?._id) return;
 
-    }, [selectedChat]);
-
-    socket.on('receiveMessage', handleMessage);
-    return () => socket.off('receiveMessage', handleMessage);
-  }, [socket, user]);
-
-  const sendMessage = () => {
-    if (!socket || !messageText.trim() || !selectedChat || !user?._id) return;
-
-    const messageData = {
-      sender: user._id,
-      receiver: selectedChat._id,
-      text: messageText.trim(),
-    };
-
-    socket.emit('sendMessage', messageData);
+    const handleMessage = (message) => {
+      const chatId = 
+        message.sender === user._id
+          ? message.receiver
+          : message.sender;
 
     setChatMessages(prev => ({
       ...prev,
-      [selectedChat._id]: [...(prev[selectedChat._id] || []), { ...messageData, _id: Date.now() }]
+      [chatId]: [...API_URL(prev[chatId] || []), message]
     }));
-
-    setMessageText('');
   };
+
+  socket.on('recieveMessage', handleMessage);
+
+  return () => socket.off('receiveMessage', handleMessage);
+}, [socket,user?._id]);
+
+      const sendMessage = () => {
+        if(!socket || !messageText.trim() || !selectedChat || !user?._id) return;
+
+        socket.emit('sendMessage', {
+          sender: user._id,
+          receiver: selectedChat._id,
+          text: messageText.trim(),
+        });
+
+        sendMessageText('');
+      };
+
+
+
+    }, [selectedChat]);
 
   const currentMessages = selectedChat ? chatMessages[selectedChat._id] || [] : [];
 
