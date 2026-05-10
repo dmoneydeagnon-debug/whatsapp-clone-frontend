@@ -27,6 +27,28 @@ function App() {
     setToken(null);
   };
 
+        const sendMessage = () => {
+        if(!socket || !messageText.trim() || !selectedChat || !user?._id) return;
+
+        const messageData = {
+          sender: user._id,
+          receiver: selectedChat._id,
+          text: messageText.trim(),
+        };
+
+        socket.emit('sendMessage', messageData);
+
+        setChatMessages(prev => ({
+          ...prev,
+          [selectedChat._id]: [
+            ...API_URL(prev[selectedChat._id] || []),
+            { ...messageData, _id: Date.now()}
+          ]
+        }));
+
+        sendMessageText('');
+      };
+
   // Initialize Socket
   useEffect(() => {
     const newSocket = io(API_URL);
@@ -134,27 +156,6 @@ function App() {
   return () => socket.off('receiveMessage', handleMessage);
 }, [socket,user?._id]);
 
-      const sendMessage = () => {
-        if(!socket || !messageText.trim() || !selectedChat || !user?._id) return;
-
-        const messageData = {
-          sender: user._id,
-          receiver: selectedChat._id,
-          text: messageText.trim(),
-        };
-
-        socket.emit('sendMessage', messageData);
-
-        setChatMessages(prev => ({
-          ...prev,
-          [selectedChat._id]: [
-            ...API_URL(prev[selectedChat._id] || []),
-            { ...messageData, _id: Date.now()}
-          ]
-        }));
-
-        sendMessageText('');
-      };
 
     }, [selectedChat]);
 
