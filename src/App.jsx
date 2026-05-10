@@ -22,6 +22,11 @@ function App() {
   const messagesEndRef = useRef(null);
 
   const loginSuccess = (userData, newToken) => {
+    const fixedUser = {
+      ...userData,
+      _id: userData.id
+    };
+    
     localStorage.setItem('token', newToken);
     setToken(newToken);
     setUser(userData);
@@ -206,7 +211,10 @@ function App() {
                 const response = await axios.post(`${API_URL}/api/auth/google`, { token: res.credential });
                 localStorage.setItem("token", response.data.token);
                 setToken(response.data.token);
-                setUser(response.data.user);
+                setUser({
+                  ...response.data.user,
+                  _id: response.data.user.id
+                });
                 if (socketRef.current) {
                   socketRef.current.emit("join", response.data.user._id);
                 }
