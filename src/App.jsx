@@ -21,6 +21,12 @@ function App() {
   const [chatMessages, setChatMessages] = useState({});
   const messagesEndRef = useRef(null);
 
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+    setToken(null);
+  };
+
   // Initialize Socket
   useEffect(() => {
     const newSocket = io(API_URL);
@@ -60,7 +66,7 @@ function App() {
 
   // Fetch users
   useEffect(() => {
-    if (token) return;
+    if (!token) return;
 
     axios.get(`${API_URL}/api/auth/users`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -79,7 +85,7 @@ function App() {
 
   // Restore user
   useEffect(() => {
-    if (token || user) return;
+    if (!token) return;
 
     try {
     const payload = JSON.parse(atob(token.split('.')[1]));
@@ -106,11 +112,6 @@ function App() {
         }));
       })
       .catch(console.error);
-
-      const logout = () => {
-        localStorage.removeItem('token');
-        window.location.reload();
-      };
       
       // Real-time messages
   useEffect(() => {
@@ -118,13 +119,13 @@ function App() {
 
     const handleMessage = (message) => {
       const chatId = 
-        message.sender === user?._id
+        message.sender === user._id
           ? message.receiver
           : message.sender;
 
     setChatMessages(prev => ({
       ...prev,
-      [chatId]: [...API_URL(prev[chatId] || []), message]
+      [chatId]: [...(prev[chatId] || []), message]
     }));
   };
 
@@ -136,16 +137,24 @@ function App() {
       const sendMessage = () => {
         if(!socket || !messageText.trim() || !selectedChat || !user?._id) return;
 
-        socket.emit('sendMessage', {
+        const messageData = {
           sender: user._id,
           receiver: selectedChat._id,
           text: messageText.trim(),
-        });
+        };
+
+        socket.emit('sendMessage', messageData);
+
+        setChatMessages(prev => ({
+          ...prev,
+          [selectedChat._id]: [
+            ...API_URL(prev[selectedChat._id] || []),
+            { ...messageData, _id: Date.now()}
+          ]
+        }));
 
         sendMessageText('');
       };
-
-
 
     }, [selectedChat]);
 
