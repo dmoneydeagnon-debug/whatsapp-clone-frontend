@@ -29,7 +29,7 @@ function App() {
     
     localStorage.setItem('token', newToken);
     setToken(newToken);
-    setUser(userData);
+    setUser(fixedUser);
   };
 
   const logout = () => {
@@ -151,7 +151,17 @@ function App() {
 
   // ================= SEND MESSAGE =================
   const sendMessage = () => {
-    if (!socketRef.current || !messageText.trim() || !selectedChat || !user) return;
+    console.log("SEND CLICKED");
+
+    if (!socketRef.current || !messageText.trim() || !selectedChat || !user) {
+      console.log("BLOCKED:", {
+        socket: !!socketRef.current,
+        text: messageText,
+        selectedChat,
+        user
+      });
+      return;
+    }
 
     const messageData = {
       sender: user._id,
@@ -174,6 +184,10 @@ function App() {
 
     socketRef.current.emit('sendMessage', messageData);
     setMessageText('');
+
+    console.log("USER:", user);
+    console.log("SELECTED CHAT:", selectedChat);
+    console.log("MESSAGE:", messageText);
   };
 
   const currentMessages = selectedChat
