@@ -207,7 +207,9 @@ function App() {
                 localStorage.setItem("token", response.data.token);
                 setToken(response.data.token);
                 setUser(response.data.user);
-                if (socket) socket.emit("join", response.data.user._id);
+                if (socketRef.current) {
+                  socketRef.current.emit("join", response.data.user._id);
+                }
               } catch (err) {
                 console.error(err);
                 alert("Google login failed");
