@@ -106,6 +106,11 @@ function App() {
         }));
       })
       .catch(console.error);
+
+      const logout = () => {
+        localStorage.removeItem('token');
+        window.location.reload();
+      };
       
       // Real-time messages
   useEffect(() => {
