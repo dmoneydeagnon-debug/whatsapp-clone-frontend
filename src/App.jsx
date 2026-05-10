@@ -66,17 +66,31 @@ function App() {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setChats(res.data))
-    .catch(console.error);
+    .catch(err => {
+      console.error(err);
+
+      if(err.response?.status === 401) {
+        // Token is bad 'n logout
+        localStorage.removeItem('token');
+        setToken(null);
+      }
+    });
   }, [token]);
 
   // Restore user
   useEffect(() => {
-    if (token && !user) return;
+    if (token || user) return;
 
+    try {
     const payload = JSON.parse(atob(token.split('.')[1]));
     setUser({ _id: payload.id });
 
     if (socket) socket.emit('join', payload.id);
+    } catch (err) {
+      console.error("Invalid token, logging out...");
+      localStorage.removeItem('token');
+      setToken(null);
+    }
   }, [token, socket]);
 
     useEffect(() => {
@@ -99,7 +113,7 @@ function App() {
 
     const handleMessage = (message) => {
       const chatId = 
-        message.sender === user._id
+        message.sender === user?._id
           ? message.receiver
           : message.sender;
 
