@@ -26,6 +26,8 @@ function App() {
       ...userData,
       _id: userData.id
     };
+
+    console.log("LOGIN USER:", fixedUser);
     
     localStorage.setItem('token', newToken);
     setToken(newToken);
@@ -148,6 +150,21 @@ function App() {
     })
     .catch(console.error);
   }, [selectedChat, token]);
+
+  useEffect(() => {
+    if (token && !user) {
+      axios.get(`${API_URL}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => {
+        setUser({
+          ...res.data,
+          _id: res.data.id
+        });
+      })
+      .catch(() => logout());
+    }
+  }, [token]);
 
   // ================= SEND MESSAGE =================
   const sendMessage = () => {
