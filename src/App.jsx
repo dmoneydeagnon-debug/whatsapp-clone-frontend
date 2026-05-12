@@ -181,7 +181,6 @@ function App() {
     }
 
     const messageData = {
-      sender: user._id,
       receiver: selectedChat._id,
       text: messageText.trim(),
     };
