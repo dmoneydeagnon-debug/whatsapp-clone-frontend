@@ -175,27 +175,27 @@ function App() {
   }, [token]);
 
   // ================= SEND MESSAGE =================
-  const sendMessage = () => {
-    console.log("SEND CLICKED");
+  // ================= AUTO SCROLL =================
+useEffect(() => {
+  messagesEndRef.current?.scrollIntoView({
+    behavior: 'smooth'
+  });
+}, [chatMessages, selectedChat]);
 
-    if (!socketRef.current || !messageText.trim() || !selectedChat || !user) {
-      console.log("BLOCKED:", {
-        socket: !!socketRef.current,
-        text: messageText,
-        selectedChat,
-        user
-      });
-      return;
-    }
+// ================= SEND MESSAGE =================
+const sendMessage = () => {
 
-    const messageData = {
-      receiver: selectedChat._id,
-      text: messageText.trim(),
-    };
-
-    const sendMessage = () => {
+  console.log("SEND CLICKED");
 
   if (!socketRef.current || !messageText.trim() || !selectedChat || !user) {
+
+    console.log("BLOCKED:", {
+      socket: !!socketRef.current,
+      text: messageText,
+      selectedChat,
+      user
+    });
+
     return;
   }
 
@@ -207,21 +207,9 @@ function App() {
   socketRef.current.emit('sendMessage', messageData);
 
   setMessageText('');
+
+  console.log("MESSAGE SENT");
 };
-
-useEffect(() => {
-  messagesEndRef.current?.scrollIntoView({
-    behavior: 'smooth'
-  });
-}, [chatMessages, selectedChat]);
-
-    socketRef.current.emit('sendMessage', messageData);
-    setMessageText('');
-
-    console.log("USER:", user);
-    console.log("SELECTED CHAT:", selectedChat);
-    console.log("MESSAGE:", messageText);
-  };
 
   const currentMessages = selectedChat
     ? chatMessages[selectedChat._id] || []
