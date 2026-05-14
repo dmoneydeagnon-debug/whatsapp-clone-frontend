@@ -92,6 +92,7 @@ function App() {
     const socket = io(API_URL, {
   auth: { token },
   transports: ['websocket'],
+  upgrade: false,
   reconnection: true
 });
 
@@ -103,16 +104,18 @@ function App() {
 
     socket.on('receiveMessage', (message) => {
       const chatId =
-        message.sender === user._id ? message.receiver : message.sender;
+  message.sender?.toString() === user._id?.toString()
+    ? message.receiver
+    : message.sender;
 
       setChatMessages(prev => {
-        const existing = prev[chatId] || [];
+        const existing = prev[chatId?.toString()] || [];
 
         if (existing.some(m => m._id === message._id)) return prev;
 
         return {
           ...prev,
-          [chatId]: [...existing, message]
+          [chatId?.toString()]: [...existing, message]
         };
       });
     });
