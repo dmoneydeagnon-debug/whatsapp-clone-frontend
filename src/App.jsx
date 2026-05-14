@@ -87,54 +87,49 @@ function App() {
 
   // ================= SOCKET =================
   useEffect(() => {
-    if (!token || !user?._id) return;
+  if (!token || !user?._id) return;
 
-    const socket = io(API_URL, {
-  auth: { token },
-  withCredentials: true,
-  transports: ['websocket', 'polling'],
-  reconnection: true
-});
+  const socket = io(API_URL, {
+    auth: { token },
+    withCredentials: true,
+    transports: ['websocket', 'polling'],
+    reconnection: true
+  });
 
-    socketRef.current = socket;
-
-    socket.on('connect', () => {
-      socket.emit('join', user._id);
-    });
-
-    socket.on('receiveMessage', (message) => {
-      const chatId =
-  message.sender?.toString() === user._id?.toString()
-    ? message.receiver
-    : message.sender;
-
-      setChatMessages(prev => {
-        const existing = prev[chatId?.toString()] || [];
-
-        if (existing.some(m => m._id === message._id)) return prev;
-
-        return {
-          ...prev,
-          [chatId?.toString()]: [...existing, message]
-        };
-      });
-    });
-
-    return () => {
-      socket.disconnect();
-      socketRef.current = null;
-    };
-  }, [token, user?._id]); // ✅ safer dependency
+  socketRef.current = socket;
 
   socket.on('connect', () => {
-  console.log('SOCKET CONNECTED:', socket.id);
+    console.log('SOCKET CONNECTED:', socket.id);
+    socket.emit('join', user._id);
+  });
 
-  socket.emit('join', user._id);
-});
+  socket.on('connect_error', (err) => {
+    console.log('SOCKET ERROR:', err.message);
+  });
 
-socket.on('connect_error', (err) => {
-  console.log('SOCKET ERROR:', err.message);
-});
+  socket.on('receiveMessage', (message) => {
+    const chatId =
+      message.sender?.toString() === user._id?.toString()
+        ? message.receiver
+        : message.sender;
+
+    setChatMessages(prev => {
+      const existing = prev[chatId?.toString()] || [];
+
+      if (existing.some(m => m._id === message._id)) return prev;
+
+      return {
+        ...prev,
+        [chatId?.toString()]: [...existing, message]
+      };
+    });
+  });
+
+  return () => {
+    socket.disconnect();
+    socketRef.current = null;
+  };
+}, [token, user?._id]);
 
   // ================= FETCH CHATS =================
   useEffect(() => {
