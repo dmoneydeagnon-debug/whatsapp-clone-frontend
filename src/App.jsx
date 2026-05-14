@@ -91,8 +91,8 @@ function App() {
 
     const socket = io(API_URL, {
   auth: { token },
-  transports: ['websocket'],
-  upgrade: false,
+  withCredentials: true,
+  transports: ['websocket', 'polling'],
   reconnection: true
 });
 
@@ -125,6 +125,16 @@ function App() {
       socketRef.current = null;
     };
   }, [token, user?._id]); // ✅ safer dependency
+
+  socket.on('connect', () => {
+  console.log('SOCKET CONNECTED:', socket.id);
+
+  socket.emit('join', user._id);
+});
+
+socket.on('connect_error', (err) => {
+  console.log('SOCKET ERROR:', err.message);
+});
 
   // ================= FETCH CHATS =================
   useEffect(() => {
