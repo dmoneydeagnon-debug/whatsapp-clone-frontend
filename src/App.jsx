@@ -90,8 +90,10 @@ function App() {
     if (!token || !user?._id) return;
 
     const socket = io(API_URL, {
-      auth: { token }
-    });
+  auth: { token },
+  transports: ['websocket'],
+  reconnection: true
+});
 
     socketRef.current = socket;
 
@@ -157,11 +159,17 @@ function App() {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then(res => {
-        setUser({
-          ...res.data,
-          _id: res.data.id
-        });
-      })
+
+  if (!res.data) {
+    logout();
+    return;
+  }
+
+  setUser({
+    ...res.data,
+    _id: res.data.id
+  });
+})
       .catch(() => logout());
     }
   }, [token]);
@@ -185,18 +193,27 @@ function App() {
       text: messageText.trim(),
     };
 
-    const tempMessage = {
-      ...messageData,
-      _id: Date.now().toString()
-    };
+    const sendMessage = () => {
 
-    setChatMessages(prev => ({
-      ...prev,
-      [selectedChat._id]: [
-        ...(prev[selectedChat._id] || []),
-        tempMessage
-      ]
-    }));
+  if (!socketRef.current || !messageText.trim() || !selectedChat || !user) {
+    return;
+  }
+
+  const messageData = {
+    receiver: selectedChat._id,
+    text: messageText.trim(),
+  };
+
+  socketRef.current.emit('sendMessage', messageData);
+
+  setMessageText('');
+};
+
+useEffect(() => {
+  messagesEndRef.current?.scrollIntoView({
+    behavior: 'smooth'
+  });
+}, [chatMessages, selectedChat]);
 
     socketRef.current.emit('sendMessage', messageData);
     setMessageText('');
@@ -246,7 +263,7 @@ function App() {
                   _id: response.data.user.id
                 });
                 if (socketRef.current) {
-                  socketRef.current.emit("join", response.data.user._id);
+                  socketRef.current.emit("join", response.data.user.id);;
                 }
               } catch (err) {
                 console.error(err);
@@ -322,12 +339,17 @@ function App() {
                 </div>
               )}
               {currentMessages.map(msg => (
-                <div key={msg._id} style={{ marginBottom: '15px', textAlign: msg.sender === user._id ? 'right' : 'left' }}>
+                <div key={msg._id} style={{ marginBottom: '15px', textAlign: msg.sender?.toString() === user._id?.toString()
+  ? 'right'
+  : 'left' }}>
                   <div style={{ 
                     display: 'inline-block', 
                     padding: '12px 18px', 
                     borderRadius: '18px', 
-                    background: msg.sender === user._id ? '#10b981' : '#334155', 
+                    background:
+  msg.sender?.toString() === user._id?.toString()
+    ? '#10b981'
+    : '#334155', 
                     maxWidth: '70%' 
                   }}>
                     {msg.text}
