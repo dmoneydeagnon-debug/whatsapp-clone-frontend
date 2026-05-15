@@ -100,59 +100,46 @@ function App() {
   socketRef.current = socket;
 
   socket.on('connect', () => {
-    console.log('SOCKET CONNECTED:', socket.id);
     socket.emit('join', user._id);
   });
 
-  socket.on('connect_error', (err) => {
-    console.log('SOCKET ERROR:', err.message);
-  });
-
   socket.on('receiveMessage', (message) => {
+    const senderId = message.sender;
+    const receiverId = message.receiver;
 
-  const senderId = message.sender?._id || message.sender;
-  const receiverId = message.receiver?._id || message.receiver;
+    const chatId =
+      senderId === user._id ? receiverId : senderId;
 
-  const chatId =
-    senderId === user._id ? receiverId : senderId;
+    setChatMessages(prev => {
+      const existing = prev[chatId] || [];
 
-  setChatMessages(prev => {
-    const existing = prev[chatId] || [];
+      const exists = existing.some(m => m._id === message._id);
+      if (exists) return prev;
 
-    const alreadyExists = existing.some(
-      m => m._id === message._id
-    );
-
-    if (alreadyExists) return prev;
-
-    return {
-      ...prev,
-      [chatId]: [...existing, message]
-    };
+      return {
+        ...prev,
+        [chatId]: [...existing, message]
+      };
+    });
   });
-});
 
   socket.on('userStatusChanged', ({ userId, isOnline, lastSeen }) => {
+    setChats(prev =>
+      prev.map(chat =>
+        chat._id === userId
+          ? { ...chat, isOnline, lastSeen }
+          : chat
+      )
+    );
 
-  setChats(prev =>
-    prev.map(chat =>
-      chat._id === userId
-        ? { ...chat, isOnline, lastSeen }
-        : chat
-    )
-  );
+    setSelectedChat(prev =>
+      prev && prev._id === userId
+        ? { ...prev, isOnline, lastSeen }
+        : prev
+    );
+  });
 
-  setSelectedChat(prev =>
-    prev && prev._id === userId
-      ? { ...prev, isOnline, lastSeen }
-      : prev
-  );
-});
-
-  return () => {
-    socket.disconnect();
-    socketRef.current = null;
-  };
+  return () => socket.disconnect();
 }, [token, user?._id]);
 
   // ================= FETCH CHATS =================
@@ -216,31 +203,17 @@ useEffect(() => {
 
 // ================= SEND MESSAGE =================
 const sendMessage = () => {
-
-  console.log("SEND CLICKED");
-
-  if (!socketRef.current || !messageText.trim() || !selectedChat || !user) {
-
-    console.log("BLOCKED:", {
-      socket: !!socketRef.current,
-      text: messageText,
-      selectedChat,
-      user
-    });
-
-    return;
-  }
+  if (!socketRef.current || !messageText.trim() || !selectedChat || !user) return;
 
   const messageData = {
     receiver: selectedChat._id,
     text: messageText.trim(),
+    sender: user._id
   };
 
   socketRef.current.emit('sendMessage', messageData);
 
   setMessageText('');
-
-  console.log("MESSAGE SENT");
 };
 
 const menuItem = {
@@ -250,8 +223,8 @@ const menuItem = {
 };
 
   const currentMessages = selectedChat
-    ? chatMessages[selectedChat._id] || []
-    : [];
+  ? chatMessages[selectedChat._id] || []
+  : [];
 
 
   if (!token) {
