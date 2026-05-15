@@ -126,6 +126,23 @@ function App() {
     });
   });
 
+  socket.on('userStatusChanged', ({ userId, isOnline, lastSeen }) => {
+
+  setChats(prev =>
+    prev.map(chat =>
+      chat._id === userId
+        ? { ...chat, isOnline, lastSeen }
+        : chat
+    )
+  );
+
+  setSelectedChat(prev =>
+    prev && prev._id === userId
+      ? { ...prev, isOnline, lastSeen }
+      : prev
+  );
+});
+
   return () => {
     socket.disconnect();
     socketRef.current = null;
