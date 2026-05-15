@@ -109,22 +109,28 @@ function App() {
   });
 
   socket.on('receiveMessage', (message) => {
-    const chatId =
-      message.sender?.toString() === user._id?.toString()
-        ? message.receiver
-        : message.sender;
 
-    setChatMessages(prev => {
-      const existing = prev[chatId?.toString()] || [];
+  const senderId = message.sender?._id || message.sender;
+  const receiverId = message.receiver?._id || message.receiver;
 
-      if (existing.some(m => m._id === message._id)) return prev;
+  const chatId =
+    senderId === user._id ? receiverId : senderId;
 
-      return {
-        ...prev,
-        [chatId?.toString()]: [...existing, message]
-      };
-    });
+  setChatMessages(prev => {
+    const existing = prev[chatId] || [];
+
+    const alreadyExists = existing.some(
+      m => m._id === message._id
+    );
+
+    if (alreadyExists) return prev;
+
+    return {
+      ...prev,
+      [chatId]: [...existing, message]
+    };
   });
+});
 
   socket.on('userStatusChanged', ({ userId, isOnline, lastSeen }) => {
 
