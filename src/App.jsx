@@ -17,6 +17,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [chatMessages, setChatMessages] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -219,6 +220,12 @@ const sendMessage = () => {
   console.log("MESSAGE SENT");
 };
 
+const menuItem = {
+  padding: '14px 18px',
+  cursor: 'pointer',
+  borderBottom: '1px solid #475569'
+};
+
   const currentMessages = selectedChat
     ? chatMessages[selectedChat._id] || []
     : [];
@@ -284,10 +291,77 @@ const sendMessage = () => {
         flexDirection: 'column',
         overflow: 'hidden'
       }}>
-        <div style={{ padding: '20px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between' }}>
-          <h1 style={{ fontSize: '24px' }}>Messages</h1>
-          <button onClick={logout} style={{ padding: '8px 16px', background: '#ef4444', border: 'none', borderRadius: '6px' }}>Logout</button>
+        <div
+  style={{
+    padding: '20px',
+    borderBottom: '1px solid #334155',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  }}
+>
+  <h1 style={{ fontSize: '24px' }}>
+    Messages
+  </h1>
+
+  <div style={{ position: 'relative' }}>
+
+    <button
+      onClick={() => setShowMenu(!showMenu)}
+      style={{
+        background: 'transparent',
+        border: 'none',
+        color: 'white',
+        fontSize: '28px',
+        cursor: 'pointer'
+      }}
+    >
+      ⋮
+    </button>
+
+    {showMenu && (
+      <div
+        style={{
+          position: 'absolute',
+          top: '45px',
+          right: 0,
+          background: '#334155',
+          borderRadius: '10px',
+          width: '180px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+          zIndex: 1000
+        }}
+      >
+
+        <div
+          style={menuItem}
+          onClick={() => alert('Profile')}
+        >
+          Profile
         </div>
+
+        <div
+          style={menuItem}
+          onClick={() => alert('Settings')}
+        >
+          Settings
+        </div>
+
+        <div
+          style={{
+            ...menuItem,
+            color: '#ef4444'
+          }}
+          onClick={logout}
+        >
+          Logout
+        </div>
+
+      </div>
+    )}
+  </div>
+</div>
 
         <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
           {chats.map(chat => (
@@ -306,13 +380,53 @@ const sendMessage = () => {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '50px', height: '50px', background: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
-                  {chat.name?.[0]}
-                </div>
+                <div
+  style={{
+    width: '50px',
+    height: '50px',
+    borderRadius: '50%',
+    overflow: 'hidden',
+    background: '#334155',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  }}
+>
+  {chat.avatar ? (
+    <img
+      src={chat.avatar}
+      alt={chat.name}
+      style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover'
+      }}
+    />
+  ) : (
+    <span style={{ fontSize: '22px' }}>
+      {chat.name?.[0]}
+    </span>
+  )}
+</div>
                 <div>
-                  <div style={{ fontWeight: '500' }}>{chat.name}</div>
-                  <div style={{ fontSize: '13px', color: '#94a3b8' }}>{chat.email}</div>
-                </div>
+  <div style={{ fontWeight: '500' }}>
+    {chat.name}
+  </div>
+
+  <div
+    style={{
+      fontSize: '13px',
+      color: chat.isOnline
+        ? '#10b981'
+        : '#94a3b8'
+    }}
+  >
+    {chat.isOnline
+      ? 'Online'
+      : `Last seen ${new Date(chat.lastSeen).toLocaleTimeString()}`
+    }
+  </div>
+</div>
               </div>
             </div>
           ))}
@@ -325,7 +439,61 @@ const sendMessage = () => {
           <>
             <div style={{ padding: '20px', borderBottom: '1px solid #334155', background: '#1e2937', display: 'flex', alignItems: 'center' }}>
               {isMobile && <button onClick={() => setSelectedChat(null)} style={{ marginRight: '15px', fontSize: '28px' }}>←</button>}
-              <h2>{selectedChat.name}</h2>
+              <div style={{
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px'
+}}>
+
+  <div
+    style={{
+      width: '45px',
+      height: '45px',
+      borderRadius: '50%',
+      overflow: 'hidden',
+      background: '#334155',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}
+  >
+    {selectedChat.avatar ? (
+      <img
+        src={selectedChat.avatar}
+        alt={selectedChat.name}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover'
+        }}
+      />
+    ) : (
+      <span>
+        {selectedChat.name?.[0]}
+      </span>
+    )}
+  </div>
+
+  <div>
+    <h2 style={{ margin: 0 }}>
+      {selectedChat.name}
+    </h2>
+
+    <div
+      style={{
+        fontSize: '13px',
+        color: selectedChat.isOnline
+          ? '#10b981'
+          : '#94a3b8'
+      }}
+    >
+      {selectedChat.isOnline
+        ? 'Online'
+        : 'Offline'}
+    </div>
+  </div>
+
+</div>
             </div>
 
             <div style={{ flex: 1, padding: '30px', overflowY: 'auto', background: '#0f172a' }}>
