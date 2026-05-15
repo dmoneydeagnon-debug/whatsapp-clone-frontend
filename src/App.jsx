@@ -22,6 +22,20 @@ function App() {
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
 
+  const uploadFile = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await axios.post(`${API_URL}/api/upload`, formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+
+  return res.data.url;
+};
+
   const loginSuccess = (userData, newToken) => {
     const fixedUser = {
       ...userData,
@@ -192,6 +206,41 @@ function App() {
       .catch(() => logout());
     }
   }, [token]);
+
+  const mediaRecorderRef = useRef(null);
+const audioChunks = useRef([]);
+
+const startRecording = async () => {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+  const recorder = new MediaRecorder(stream);
+  mediaRecorderRef.current = recorder;
+  audioChunks.current = [];
+
+  recorder.ondataavailable = (e) => {
+    audioChunks.current.push(e.data);
+  };
+
+  recorder.onstop = async () => {
+    const blob = new Blob(audioChunks.current, { type: 'audio/webm' });
+    const file = new File([blob], 'voice.webm', { type: 'audio/webm' });
+
+    const url = await uploadFile(file);
+
+    socketRef.current.emit('sendMessage', {
+      receiver: selectedChat._id,
+      text: '',
+      mediaUrl: url,
+      mediaType: 'voice'
+    });
+  };
+
+  recorder.start();
+};
+
+const stopRecording = () => {
+  mediaRecorderRef.current?.stop();
+};
 
   // ================= SEND MESSAGE =================
   // ================= AUTO SCROLL =================
@@ -512,7 +561,18 @@ const menuItem = {
     : '#334155', 
                     maxWidth: '70%' 
                   }}>
-                    {msg.text}
+                    {msg.mediaType === 'image' && (
+  <img
+    src={msg.mediaUrl}
+    style={{ maxWidth: '200px', borderRadius: '10px' }}
+  />
+)}
+
+{msg.mediaType === 'voice' && (
+  <audio controls src={msg.mediaUrl} />
+)}
+
+{msg.text}
                   </div>
                 </div>
               ))}
@@ -522,6 +582,23 @@ const menuItem = {
             <div style={{ padding: '20px', background: '#1e2937' }}>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <input
+  type="file"
+  accept="image/*"
+  onChange={async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const url = await uploadFile(file);
+
+    socketRef.current.emit('sendMessage', {
+      receiver: selectedChat._id,
+      text: '',
+      mediaUrl: url,
+      mediaType: 'image'
+    });
+  }}
+/>
+                <input
                   type="text"
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
@@ -529,6 +606,11 @@ const menuItem = {
                   placeholder="Type a message..."
                   style={{ flex: 1, padding: '16px', borderRadius: '9999px', background: '#334155', border: 'none', color: 'white' }}
                 />
+                <button onMouseDown={startRecording} onMouseUp={stopRecording}>
+  🎤 Hold
+</button>
+
+<input type="file" accept="image/*" />
                 <button onClick={sendMessage} style={{ padding: '0 30px', background: '#10b981', border: 'none', borderRadius: '9999px' }}>
                   Send
                 </button>
