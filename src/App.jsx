@@ -21,26 +21,53 @@ function App() {
 
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const uploadFile = async (file) => {
-  try {
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await axios.post(`${API_URL}/api/upload`, formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data'
-      }
-    });
+    const endpoints = [`${API_URL}/api/upload`, `${API_URL}/api/upload/image`];
 
-    return res.data.url;
-  } catch (err) {
-    console.log("UPLOAD ERROR:", err);
-    alert("Upload failed");
+    for (const endpoint of endpoints) {
+      try {
+        const res = await axios.post(endpoint, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+
+        return {
+          url: res.data.url,
+          type: res.data.type || (file.type.startsWith('image/') ? 'image' : file.type.startsWith('audio/') ? 'voice' : 'file')
+        };
+      } catch (err) {
+        if (err.response?.status === 404) continue;
+        console.log('UPLOAD ERROR:', err);
+        alert('Upload failed');
+        return null;
+      }
+    }
+
+    console.log('UPLOAD ERROR: no upload endpoint available');
+    alert('Upload failed');
     return null;
-  }
-};
+  };
+
+  const sendMediaMessage = async (file) => {
+    if (!file || !selectedChat?._id || !socketRef.current) return;
+
+    const result = await uploadFile(file);
+    if (!result?.url) return;
+
+    socketRef.current.emit('sendMessage', {
+      receiver: selectedChat._id,
+      text: '',
+      mediaUrl: result.url,
+      mediaType: result.type
+    });
+  };
 
   const loginSuccess = (userData, newToken) => {
     const fixedUser = {
@@ -605,44 +632,81 @@ const menuItem = {
             </div>
 
             <div style={{ padding: '20px', background: '#1e2937' }}>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <input
-  type="file"
-  accept="image/*"
-  onChange={async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  padding: '12px 18px',
+                  borderRadius: '9999px',
+                  border: '1px solid #475569',
+                  background: '#1f2937',
+                  color: 'white',
+                  cursor: 'pointer',
+                  minWidth: '140px'
+                }}
+              >
+                📎 Add image
+              </button>
 
-    const url = await uploadFile(file);
-    if (!url) return;
-    if (!socketRef.current) {
-      console.error('Socket not connected');
-      return;
-    }
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  sendMediaMessage(file);
+                  e.target.value = null;
+                }}
+              />
 
-    socketRef.current.emit('sendMessage', {
-      receiver: selectedChat._id,
-      text: '',
-      mediaUrl: url,
-      mediaType: 'image'
-    });
-  }}
-/>
-                <input
-                  type="text"
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                  placeholder="Type a message..."
-                  style={{ flex: 1, padding: '16px', borderRadius: '9999px', background: '#334155', border: 'none', color: 'white' }}
-                />
-                <button onMouseDown={startRecording} onMouseUp={stopRecording}>
-  🎤 Hold
-</button>
-                <button onClick={sendMessage} style={{ padding: '0 30px', background: '#10b981', border: 'none', borderRadius: '9999px' }}>
-                  Send
-                </button>
-              </div>
+              <input
+                type="text"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                placeholder="Type a message..."
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  borderRadius: '9999px',
+                  background: '#334155',
+                  border: 'none',
+                  color: 'white'
+                }}
+              />
+
+              <button
+                onMouseDown={startRecording}
+                onMouseUp={stopRecording}
+                style={{
+                  padding: '12px 18px',
+                  borderRadius: '9999px',
+                  border: '1px solid #475569',
+                  background: '#1f2937',
+                  color: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                🎤 Hold
+              </button>
+
+              <button
+                onClick={sendMessage}
+                style={{
+                  padding: '12px 24px',
+                  background: '#10b981',
+                  border: 'none',
+                  borderRadius: '9999px',
+                  color: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                Send
+              </button>
+            </div>
             </div>
           </>
         ) : (
