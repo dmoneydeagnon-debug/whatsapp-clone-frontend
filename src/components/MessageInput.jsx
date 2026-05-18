@@ -14,25 +14,36 @@ const MessageInput = ({
   return (
     <div style={{
       display: 'flex',
-      flexDirection: isMobile ? 'column' : 'row',
-      alignItems: isMobile ? 'stretch' : 'center',
-      gap: '10px'
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: '8px',
+      flexWrap: 'nowrap',
+      width: '100%',
+      minWidth: 0
     }}>
       <button
         type="button"
         onClick={() => fileInputRef.current?.click()}
+        title="Attach file"
         style={{
-          padding: '12px 18px',
-          borderRadius: '9999px',
+          width: '44px',
+          height: '44px',
+          borderRadius: '50%',
           border: '1px solid #475569',
           background: '#1f2937',
           color: 'white',
           cursor: 'pointer',
-          width: isMobile ? '100%' : 'auto',
-          minWidth: 0
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 0,
+          flexShrink: 0
         }}
       >
-        📎 Add file
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
       </button>
 
       <input
@@ -57,11 +68,12 @@ const MessageInput = ({
         style={{
           flex: 1,
           minWidth: 0,
-          padding: '16px',
+          padding: '14px 16px',
           borderRadius: '9999px',
           background: '#334155',
           border: 'none',
-          color: 'white'
+          color: 'white',
+          height: '44px'
         }}
       />
 
@@ -70,32 +82,52 @@ const MessageInput = ({
         onMouseUp={stopRecording}
         onTouchStart={startRecording}
         onTouchEnd={stopRecording}
+        title="Record voice"
         style={{
-          padding: '12px 18px',
-          borderRadius: '9999px',
+          width: '44px',
+          height: '44px',
+          borderRadius: '50%',
           border: '1px solid #475569',
           background: '#1f2937',
           color: 'white',
           cursor: 'pointer',
-          width: isMobile ? '100%' : 'auto'
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 0,
+          flexShrink: 0
         }}
       >
-        🎤 Hold
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 1C10.3431 1 9 2.34315 9 4V12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12V4C15 2.34315 13.6569 1 12 1Z" />
+          <path d="M19 10V12C19 15.3137 16.3137 18 13 18H11C7.68629 18 5 15.3137 5 12V10" />
+          <line x1="12" y1="19" x2="12" y2="23" />
+          <line x1="8" y1="23" x2="16" y2="23" />
+        </svg>
       </button>
 
       <button
         onClick={sendMessage}
+        title="Send message"
         style={{
-          padding: '12px 24px',
-          background: '#10b981',
+          width: '44px',
+          height: '44px',
+          borderRadius: '50%',
           border: 'none',
-          borderRadius: '9999px',
+          background: '#10b981',
           color: 'white',
           cursor: 'pointer',
-          width: isMobile ? '100%' : 'auto'
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 0,
+          flexShrink: 0
         }}
       >
-        Send
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 2L11 13" />
+          <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+        </svg>
       </button>
     </div>
   );
