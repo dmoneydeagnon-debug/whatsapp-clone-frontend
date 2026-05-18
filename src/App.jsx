@@ -33,8 +33,7 @@ function App() {
       try {
         const res = await axios.post(endpoint, formData, {
           headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+            Authorization: `Bearer ${token}`
           }
         });
 
@@ -44,7 +43,7 @@ function App() {
         };
       } catch (err) {
         if (err.response?.status === 404) continue;
-        console.log('UPLOAD ERROR:', err);
+        console.log('UPLOAD ERROR:', err.response?.data || err.message || err);
         alert('Upload failed');
         return null;
       }
