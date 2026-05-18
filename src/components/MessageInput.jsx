@@ -6,12 +6,18 @@ const MessageInput = ({
   sendMessage,
   sendMediaMessage,
   startRecording,
-  stopRecording
+  stopRecording,
+  isMobile
 }) => {
   const fileInputRef = useRef(null);
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <div style={{
+      display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
+      alignItems: isMobile ? 'stretch' : 'center',
+      gap: '10px'
+    }}>
       <button
         type="button"
         onClick={() => fileInputRef.current?.click()}
@@ -22,7 +28,8 @@ const MessageInput = ({
           background: '#1f2937',
           color: 'white',
           cursor: 'pointer',
-          minWidth: '140px'
+          width: isMobile ? '100%' : 'auto',
+          minWidth: 0
         }}
       >
         📎 Add file
@@ -49,6 +56,7 @@ const MessageInput = ({
         placeholder="Type a message..."
         style={{
           flex: 1,
+          minWidth: 0,
           padding: '16px',
           borderRadius: '9999px',
           background: '#334155',
@@ -68,7 +76,8 @@ const MessageInput = ({
           border: '1px solid #475569',
           background: '#1f2937',
           color: 'white',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          width: isMobile ? '100%' : 'auto'
         }}
       >
         🎤 Hold
@@ -82,7 +91,8 @@ const MessageInput = ({
           border: 'none',
           borderRadius: '9999px',
           color: 'white',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          width: isMobile ? '100%' : 'auto'
         }}
       >
         Send

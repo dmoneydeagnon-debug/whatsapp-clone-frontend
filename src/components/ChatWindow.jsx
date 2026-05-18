@@ -79,6 +79,7 @@ const ChatWindow = ({
           sendMediaMessage={sendMediaMessage}
           startRecording={startRecording}
           stopRecording={stopRecording}
+          isMobile={isMobile}
         />
       </div>
     </>
