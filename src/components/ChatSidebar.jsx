@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import logo from '../../funchat_logo.png';
 
 const menuItem = {
   padding: '14px 18px',
@@ -6,7 +7,7 @@ const menuItem = {
   borderBottom: '1px solid #475569'
 };
 
-const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout }) => {
+const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout, onLogoClick }) => {
   const [showMenu, setShowMenu] = useState(false);
 
   return (
@@ -21,7 +22,14 @@ const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout }) 
       }}
     >
       <div style={{ padding: '20px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ fontSize: '24px' }}>Messages</h1>
+        <div
+          onClick={onLogoClick}
+          style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+          title="Home"
+        >
+          <img src={logo} alt="FunChat logo" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
+          <h1 style={{ fontSize: '24px', margin: 0 }}>Messages</h1>
+        </div>
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => setShowMenu(!showMenu)}

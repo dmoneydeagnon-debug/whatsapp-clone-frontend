@@ -1,4 +1,5 @@
 import { GoogleLogin } from '@react-oauth/google';
+import logo from '../../funchat_logo.png';
 
 const AuthForm = ({
   isLogin,
@@ -16,7 +17,8 @@ const AuthForm = ({
   return (
     <div style={{ minHeight: '100dvh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div style={{ background: '#1e2937', padding: '40px', borderRadius: '16px', width: '100%', maxWidth: '400px' }}>
-        <h1 style={{ textAlign: 'center', fontSize: '36px', color: 'white' }}>FunChat</h1>
+        <img src={logo} alt="FunChat logo" style={{ display: 'block', margin: '0 auto 20px', width: '80px', height: '80px', objectFit: 'contain' }} />
+        <h1 style={{ textAlign: 'center', fontSize: '32px', color: 'white', marginBottom: '10px' }}>FunChat</h1>
         <p style={{ textAlign: 'center', color: '#94a3b8', marginBottom: '30px' }}>Simple & Clean</p>
 
         <form onSubmit={handleAuth}>

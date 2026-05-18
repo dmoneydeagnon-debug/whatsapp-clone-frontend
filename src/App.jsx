@@ -315,6 +315,7 @@ function App() {
         onSelectChat={setSelectedChat}
         isMobile={isMobile}
         onLogout={logout}
+        onLogoClick={() => setSelectedChat(null)}
       />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

@@ -24,8 +24,27 @@ const ChatWindow = ({
     <>
       <div style={{ padding: '20px', borderBottom: '1px solid #334155', background: '#1e2937', display: 'flex', alignItems: 'center' }}>
         {isMobile && (
-          <button onClick={onBack} style={{ marginRight: '15px', fontSize: '28px' }}>
-            ←
+          <button
+            onClick={onBack}
+            title="Back"
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '50%',
+              border: '1px solid #475569',
+              background: '#0f172a',
+              color: 'white',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: '14px',
+              flexShrink: 0
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
           </button>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
