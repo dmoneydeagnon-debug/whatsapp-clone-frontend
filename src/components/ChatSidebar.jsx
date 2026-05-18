@@ -1,0 +1,105 @@
+import { useState } from 'react';
+
+const menuItem = {
+  padding: '14px 18px',
+  cursor: 'pointer',
+  borderBottom: '1px solid #475569'
+};
+
+const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout }) => {
+  const [showMenu, setShowMenu] = useState(false);
+
+  return (
+    <div
+      style={{
+        width: isMobile && selectedChat ? '0px' : '380px',
+        borderRight: isMobile && selectedChat ? 'none' : '1px solid #334155',
+        background: '#1e2937',
+        display: isMobile && selectedChat ? 'none' : 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden'
+      }}
+    >
+      <div style={{ padding: '20px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1 style={{ fontSize: '24px' }}>Messages</h1>
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '28px', cursor: 'pointer' }}
+          >
+            ⋮
+          </button>
+          {showMenu && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '45px',
+                right: 0,
+                background: '#334155',
+                borderRadius: '10px',
+                width: '180px',
+                overflow: 'hidden',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                zIndex: 1000
+              }}
+            >
+              <div style={menuItem} onClick={() => alert('Profile')}>
+                Profile
+              </div>
+              <div style={menuItem} onClick={() => alert('Settings')}>
+                Settings
+              </div>
+              <div style={{ ...menuItem, color: '#ef4444' }} onClick={onLogout}>
+                Logout
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
+        {chats.map((chat) => (
+          <div
+            key={chat._id}
+            onClick={() => onSelectChat(chat)}
+            style={{
+              padding: '16px',
+              marginBottom: '8px',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              background: selectedChat?._id === chat._id ? '#334155' : '#1e2937'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  background: '#334155',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {chat.avatar ? (
+                  <img src={chat.avatar} alt={chat.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ fontSize: '22px' }}>{chat.name?.[0]}</span>
+                )}
+              </div>
+              <div>
+                <div style={{ fontWeight: '500' }}>{chat.name}</div>
+                <div style={{ fontSize: '13px', color: chat.isOnline ? '#10b981' : '#94a3b8' }}>
+                  {chat.isOnline ? 'Online' : `Last seen ${new Date(chat.lastSeen).toLocaleTimeString()}`}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default ChatSidebar;
