@@ -58,7 +58,7 @@ const ChatWindow = ({
           <div>
             <h2 style={{ margin: 0 }}>{selectedChat.name}</h2>
             <div style={{ fontSize: '13px', color: selectedChat.isOnline ? '#10b981' : '#94a3b8' }}>
-              {selectedChat.isOnline ? 'Online' : 'Offline'}
+              {selectedChat.isOnline ? 'Online' : `Last seen ${new Date(selectedChat.lastSeen).toLocaleTimeString()}`}
             </div>
           </div>
         </div>
@@ -83,6 +83,14 @@ const ChatWindow = ({
                   </div>
                 )}
                 {msg.text}
+              </div>
+              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px', justifyContent: msg.sender?.toString() === user._id?.toString() ? 'flex-end' : 'flex-start' }}>
+                <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                {msg.sender?.toString() === user._id?.toString() && (
+                  <span title={msg.status === 'delivered' ? 'Delivered' : 'Sent'}>
+                    {msg.status === 'delivered' ? '✓✓' : '✓'}
+                  </span>
+                )}
               </div>
             </div>
           ))

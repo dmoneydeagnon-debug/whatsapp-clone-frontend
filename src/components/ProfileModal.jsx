@@ -7,7 +7,6 @@ const ProfileModal = ({
   setForm,
   onClose,
   onSave,
-  uploadFile,
   loading
 }) => {
   useEffect(() => {
@@ -27,10 +26,12 @@ const ProfileModal = ({
     const file = e.target.files[0];
     if (!file) return;
 
-    const result = await uploadFile(file);
-    if (result?.url) {
-      setForm((prev) => ({ ...prev, avatar: result.url }));
-    }
+    // Preview the file locally before upload
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setForm((prev) => ({ ...prev, avatar: event.target.result }));
+    };
+    reader.readAsDataURL(file);
   };
 
   return (

@@ -52,7 +52,7 @@ const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout, on
               }}
             >
               <div style={menuItem} onClick={onProfileClick}>
-                Profile
+                Edit profile
               </div>
               <div style={menuItem} onClick={() => alert('Settings')}>
                 Settings
@@ -96,10 +96,10 @@ const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout, on
                   <span style={{ fontSize: '22px' }}>{chat.name?.[0]}</span>
                 )}
               </div>
-              <div>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: '500' }}>{chat.name}</div>
-                <div style={{ fontSize: '13px', color: chat.isOnline ? '#10b981' : '#94a3b8' }}>
-                  {chat.isOnline ? 'Online' : `Last seen ${new Date(chat.lastSeen).toLocaleTimeString()}`}
+                <div style={{ fontSize: '13px', color: '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {chat.lastMessage ? chat.lastMessage : 'No messages yet'}
                 </div>
               </div>
             </div>

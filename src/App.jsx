@@ -107,7 +107,23 @@ function App() {
     setLoading(true);
 
     try {
-      const res = await axios.put(`${API_URL}/api/auth/me`, profileForm, {
+      let finalForm = { ...profileForm };
+
+      // If avatar is a local data URL, upload it first
+      if (profileForm.avatar && profileForm.avatar.startsWith('data:')) {
+        const blob = await (await fetch(profileForm.avatar)).blob();
+        const file = new File([blob], 'avatar.png', { type: 'image/png' });
+        const result = await uploadFile(file);
+        if (result?.url) {
+          finalForm.avatar = result.url;
+        } else {
+          alert('Avatar upload failed');
+          setLoading(false);
+          return;
+        }
+      }
+
+      const res = await axios.put(`${API_URL}/api/auth/me`, finalForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -189,6 +205,13 @@ function App() {
 
       const chatId = senderId === user._id ? receiverId : senderId;
 
+      // Ensure message has required fields
+      const enrichedMessage = {
+        ...message,
+        createdAt: message.createdAt || new Date().toISOString(),
+        status: message.status || 'sent'
+      };
+
       setChatMessages((prev) => {
         const existing = prev[chatId] || [];
         const exists = existing.some((m) => m._id === message._id);
@@ -196,9 +219,18 @@ function App() {
 
         return {
           ...prev,
-          [chatId]: [...existing, message]
+          [chatId]: [...existing, enrichedMessage]
         };
       });
+
+      // Update chat's last message
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat._id === chatId
+            ? { ...chat, lastMessage: enrichedMessage.text || `[${enrichedMessage.mediaType}]` }
+            : chat
+        )
+      );
     });
 
     socket.on('userStatusChanged', ({ userId, isOnline, lastSeen }) => {
@@ -235,10 +267,29 @@ function App() {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then((res) => {
+      // Enrich messages with default fields
+      const enrichedMessages = res.data.map((msg) => ({
+        ...msg,
+        createdAt: msg.createdAt || new Date().toISOString(),
+        status: msg.status || 'sent'
+      }));
+
       setChatMessages((prev) => ({
         ...prev,
-        [selectedChat._id]: res.data
+        [selectedChat._id]: enrichedMessages
       }));
+
+      // Update chat's last message
+      if (enrichedMessages.length > 0) {
+        const lastMsg = enrichedMessages[enrichedMessages.length - 1];
+        setChats((prev) =>
+          prev.map((chat) =>
+            chat._id === selectedChat._id
+              ? { ...chat, lastMessage: lastMsg.text || `[${lastMsg.mediaType}]` }
+              : chat
+          )
+        );
+      }
     })
     .catch(console.error);
   }, [selectedChat, token]);
@@ -388,7 +439,6 @@ function App() {
         setForm={setProfileForm}
         onClose={closeProfile}
         onSave={handleProfileSave}
-        uploadFile={uploadFile}
         loading={loading}
       />
     </div>
