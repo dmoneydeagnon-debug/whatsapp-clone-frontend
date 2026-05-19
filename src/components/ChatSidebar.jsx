@@ -7,7 +7,7 @@ const menuItem = {
   borderBottom: '1px solid #475569'
 };
 
-const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout, onLogoClick }) => {
+const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout, onProfileClick, onLogoClick }) => {
   const [showMenu, setShowMenu] = useState(false);
 
   return (
@@ -51,7 +51,7 @@ const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout, on
                 zIndex: 1000
               }}
             >
-              <div style={menuItem} onClick={() => alert('Profile')}>
+              <div style={menuItem} onClick={onProfileClick}>
                 Profile
               </div>
               <div style={menuItem} onClick={() => alert('Settings')}>

@@ -4,6 +4,7 @@ import axios from 'axios';
 import AuthForm from './components/AuthForm';
 import ChatSidebar from './components/ChatSidebar';
 import ChatWindow from './components/ChatWindow';
+import ProfileModal from './components/ProfileModal';
 
 const API_URL = "https://whatsapp-clone-backend-4cpt.onrender.com";
 
@@ -19,6 +20,8 @@ function App() {
   const [password, setPassword] = useState('');
   const [chatMessages, setChatMessages] = useState({});
   const [loading, setLoading] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [profileForm, setProfileForm] = useState({ name: '', email: '', phone: '', avatar: '' });
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const socketRef = useRef(null);
@@ -83,6 +86,44 @@ function App() {
     if (socketRef.current) {
       socketRef.current.disconnect();
       socketRef.current = null;
+    }
+  };
+
+  const openProfile = () => {
+    if (!user) return;
+    setProfileForm({
+      name: user.name || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      avatar: user.avatar || ''
+    });
+    setProfileModalOpen(true);
+  };
+
+  const closeProfile = () => setProfileModalOpen(false);
+
+  const handleProfileSave = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await axios.put(`${API_URL}/api/auth/me`, profileForm, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setUser({
+        ...user,
+        name: res.data.name,
+        email: res.data.email,
+        phone: res.data.phone,
+        avatar: res.data.avatar
+      });
+      setProfileModalOpen(false);
+      alert('Profile saved');
+    } catch (err) {
+      alert(err.response?.data?.msg || 'Profile update failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -316,6 +357,7 @@ function App() {
         isMobile={isMobile}
         onLogout={logout}
         onLogoClick={() => setSelectedChat(null)}
+        onProfileClick={openProfile}
       />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -339,6 +381,16 @@ function App() {
           </div>
         )}
       </div>
+      <ProfileModal
+        open={profileModalOpen}
+        user={user}
+        form={profileForm}
+        setForm={setProfileForm}
+        onClose={closeProfile}
+        onSave={handleProfileSave}
+        uploadFile={uploadFile}
+        loading={loading}
+      />
     </div>
   );
 }
