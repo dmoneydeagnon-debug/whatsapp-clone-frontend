@@ -93,8 +93,8 @@ const ChatWindow = ({
               <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px', justifyContent: msg.sender?.toString() === user._id?.toString() ? 'flex-end' : 'flex-start' }}>
                 <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 {msg.sender?.toString() === user._id?.toString() && (
-                  <span title={msg.status === 'delivered' ? 'Delivered' : 'Sent'}>
-                    {msg.status === 'delivered' ? '✓✓' : '✓'}
+                  <span title={msg.status === 'seen' ? 'seen' : 'Sent'}>
+                    {msg.status === 'seen' ? '✓✓' : '✓'}
                   </span>
                 )}
               </div>
