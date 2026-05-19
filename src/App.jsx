@@ -188,15 +188,28 @@ function App() {
 
     const socket = io(API_URL, {
       auth: { token },
-      withCredentials: true,
-      transports: ['websocket', 'polling'],
+      // prefer long-polling first so environments that block websockets still work
+      transports: ['polling', 'websocket'],
       reconnection: true
     });
 
     socketRef.current = socket;
 
     socket.on('connect', () => {
+      console.log('Socket connected', socket.id);
       socket.emit('join', user._id);
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('Socket connect_error', err);
+    });
+
+    socket.on('error', (err) => {
+      console.error('Socket error', err);
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.warn('Socket disconnected', reason);
     });
 
     socket.on('receiveMessage', (message) => {

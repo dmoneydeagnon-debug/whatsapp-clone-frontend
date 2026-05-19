@@ -33,7 +33,17 @@ const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout, on
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => setShowMenu(!showMenu)}
-            style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '28px', cursor: 'pointer' }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'white',
+              fontSize: '28px',
+              cursor: 'pointer',
+              // increase tappable area and add spacing on mobile
+              padding: isMobile ? '8px' : '4px',
+              marginRight: isMobile ? '8px' : '0',
+              borderRadius: '8px'
+            }}
           >
             ⋮
           </button>
