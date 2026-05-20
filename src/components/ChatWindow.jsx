@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import MessageInput from './MessageInput';
+import CompactAudioPlayer from './CompactAudioPlayer';
 
 const ChatWindow = ({
   selectedChat,
@@ -19,6 +20,12 @@ const ChatWindow = ({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [currentMessages, selectedChat]);
+
+  const getPlayableAudioUrl = (url) => {
+    if (!url || !url.includes('/upload/')) return url;
+    if (url.includes('/upload/f_')) return url;
+    return url.replace('/upload/', '/upload/f_mp3/');
+  };
 
   return (
     <>
@@ -75,11 +82,7 @@ const ChatWindow = ({
               <div style={{ display: 'inline-block', padding: '12px 18px', borderRadius: '18px', background: msg.sender?.toString() === user._id?.toString() ? '#10b981' : '#334155', maxWidth: isMobile ? '90%' : '70%', boxSizing: 'border-box', overflowWrap: 'anywhere' }}>
                 {msg.mediaType === 'image' && <img src={msg.mediaUrl} style={{ maxWidth: '200px', borderRadius: '10px' }} />}
                 {msg.mediaType === 'voice' && (
-                  <audio
-                    controls
-                    src={msg.mediaUrl}
-                    style={{ display: 'block', width: '100%', maxWidth: isMobile ? '220px' : '360px', boxSizing: 'border-box' }}
-                  />
+                  <CompactAudioPlayer src={getPlayableAudioUrl(msg.mediaUrl)} isMobile={isMobile} />
                 )}
                 {msg.mediaType === 'file' && (
                   <div>
