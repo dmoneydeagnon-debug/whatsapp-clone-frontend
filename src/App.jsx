@@ -236,13 +236,20 @@ function App() {
         };
       });
 
-      // Update chat's last message
+      // Update chat's last message (use string comparison to avoid object id mismatches)
       setChats((prev) =>
         prev.map((chat) =>
-          chat._id === chatId
+          (chat._id?.toString?.() || chat._id) === (chatId?.toString?.() || chatId)
             ? { ...chat, lastMessage: enrichedMessage.text || `[${enrichedMessage.mediaType}]` }
             : chat
         )
+      );
+
+      // If the currently open chat is the one that received the message, update it too
+      setSelectedChat((prev) =>
+        prev && ((prev._id?.toString?.() || prev._id) === (chatId?.toString?.() || chatId))
+          ? { ...prev, lastMessage: enrichedMessage.text || `[${enrichedMessage.mediaType}]` }
+          : prev
       );
     });
 

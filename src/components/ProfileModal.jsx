@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import ImageCropper from './ImageCropper';
 
 const ProfileModal = ({
   open,
@@ -26,12 +27,20 @@ const ProfileModal = ({
     const file = e.target.files[0];
     if (!file) return;
 
-    // Preview the file locally before upload
+    // open cropper with the selected file
     const reader = new FileReader();
     reader.onload = (event) => {
-      setForm((prev) => ({ ...prev, avatar: event.target.result }));
+      setCropImage(event.target.result);
     };
     reader.readAsDataURL(file);
+  };
+
+  const [cropImage, setCropImage] = useState(null);
+
+  const handleCropCancel = () => setCropImage(null);
+  const handleCropComplete = (dataUrl) => {
+    setForm((prev) => ({ ...prev, avatar: dataUrl }));
+    setCropImage(null);
   };
 
   return (
@@ -90,6 +99,10 @@ const ProfileModal = ({
             </label>
           </div>
         </div>
+
+        {cropImage && (
+          <ImageCropper imageSrc={cropImage} boxSize={240} onCancel={handleCropCancel} onCrop={handleCropComplete} />
+        )}
 
         <form onSubmit={onSave}>
           <div style={{ display: 'grid', gap: '16px' }}>
