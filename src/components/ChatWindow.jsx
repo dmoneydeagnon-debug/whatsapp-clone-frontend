@@ -72,13 +72,13 @@ const ChatWindow = ({
         ) : (
           currentMessages.map((msg) => (
             <div key={msg._id} style={{ marginBottom: '15px', textAlign: msg.sender?.toString() === user._id?.toString() ? 'right' : 'left' }}>
-              <div style={{ display: 'inline-block', padding: '12px 18px', borderRadius: '18px', background: msg.sender?.toString() === user._id?.toString() ? '#10b981' : '#334155', maxWidth: '70%', boxSizing: 'border-box', overflowWrap: 'anywhere' }}>
+              <div style={{ display: 'inline-block', padding: '12px 18px', borderRadius: '18px', background: msg.sender?.toString() === user._id?.toString() ? '#10b981' : '#334155', maxWidth: isMobile ? '90%' : '70%', boxSizing: 'border-box', overflowWrap: 'anywhere' }}>
                 {msg.mediaType === 'image' && <img src={msg.mediaUrl} style={{ maxWidth: '200px', borderRadius: '10px' }} />}
                 {msg.mediaType === 'voice' && (
                   <audio
                     controls
                     src={msg.mediaUrl}
-                    style={{ display: 'block', width: '100%', maxWidth: '360px', boxSizing: 'border-box' }}
+                    style={{ display: 'block', width: '100%', maxWidth: isMobile ? '220px' : '360px', boxSizing: 'border-box' }}
                   />
                 )}
                 {msg.mediaType === 'file' && (

@@ -274,6 +274,40 @@ function App() {
   }, [token]);
 
   useEffect(() => {
+    if (!token || chats.length === 0) return;
+
+    const chatsMissingLastMessage = chats.filter((chat) => !chat.lastMessage);
+    if (chatsMissingLastMessage.length === 0) return;
+
+    const fetchLastMessages = async () => {
+      const updatedChats = await Promise.all(
+        chats.map(async (chat) => {
+          if (chat.lastMessage) return chat;
+
+          try {
+            const res = await axios.get(`${API_URL}/api/messages/${chat._id}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+
+            const messages = res.data;
+            const lastMsg = Array.isArray(messages) && messages.length ? messages[messages.length - 1] : null;
+
+            return lastMsg
+              ? { ...chat, lastMessage: lastMsg.text || `[${lastMsg.mediaType}]` }
+              : chat;
+          } catch (err) {
+            return chat;
+          }
+        })
+      );
+
+      setChats(updatedChats);
+    };
+
+    fetchLastMessages();
+  }, [token, chats]);
+
+  useEffect(() => {
     if (!selectedChat?._id || !token) return;
 
     axios.get(`${API_URL}/api/messages/${selectedChat._id}`, {
