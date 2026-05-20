@@ -22,9 +22,12 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [profileForm, setProfileForm] = useState({ name: '', email: '', phone: '', avatar: '' });
+  const [notifications, setNotifications] = useState([]);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const socketRef = useRef(null);
+  const chatsRef = useRef([]);
+  const selectedChatRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunks = useRef([]);
 
@@ -62,6 +65,37 @@ function App() {
       mediaUrl: result.url,
       mediaType: result.type
     });
+  };
+
+  const addNotification = (title, message) => {
+    const id = `${Date.now()}-${Math.random()}`;
+    setNotifications((prev) => [...prev, { id, title, message }]);
+    setTimeout(() => {
+      setNotifications((prev) => prev.filter((item) => item.id !== id));
+    }, 4000);
+  };
+
+  const markChatMessagesRead = (chatId) => {
+    if (!socketRef.current || !chatId) return;
+    socketRef.current.emit('markAsRead', { chatId });
+
+    setChatMessages((prev) => {
+      const updated = { ...prev };
+      const existing = updated[chatId] || [];
+      updated[chatId] = existing.map((msg) => {
+        const isFromChatPartner = (msg.sender?.toString?.() || msg.sender) === (chatId?.toString?.() || chatId);
+        return isFromChatPartner ? { ...msg, status: 'read', read: true } : msg;
+      });
+      return updated;
+    });
+
+    setChats((prev) =>
+      prev.map((chat) =>
+        (chat._id?.toString?.() || chat._id) === (chatId?.toString?.() || chatId)
+          ? { ...chat, unreadCount: 0 }
+          : chat
+      )
+    );
   };
 
   const loginSuccess = (userData, newToken) => {
@@ -184,6 +218,14 @@ function App() {
   }, []);
 
   useEffect(() => {
+    chatsRef.current = chats;
+  }, [chats]);
+
+  useEffect(() => {
+    selectedChatRef.current = selectedChat;
+  }, [selectedChat]);
+
+  useEffect(() => {
     if (!token || !user?._id) return;
 
     const socket = io(API_URL, {
@@ -215,14 +257,17 @@ function App() {
     socket.on('receiveMessage', (message) => {
       const senderId = message.sender;
       const receiverId = message.receiver;
-
       const chatId = senderId === user._id ? receiverId : senderId;
+      const senderChat = chatsRef.current.find(
+        (chat) => (chat._id?.toString?.() || chat._id) === (senderId?.toString?.() || senderId)
+      );
+      const senderName = senderChat?.name || 'New message';
 
-      // Ensure message has required fields
       const enrichedMessage = {
         ...message,
         createdAt: message.createdAt || new Date().toISOString(),
-        status: message.status || 'sent'
+        status: message.status || 'sent',
+        read: message.read || false
       };
 
       setChatMessages((prev) => {
@@ -236,32 +281,63 @@ function App() {
         };
       });
 
-      // Update chat's last message (use string comparison to avoid object id mismatches)
       setChats((prev) =>
-        prev.map((chat) =>
-          (chat._id?.toString?.() || chat._id) === (chatId?.toString?.() || chatId)
-            ? { ...chat, lastMessage: enrichedMessage.text || `[${enrichedMessage.mediaType}]` }
-            : chat
-        )
+        prev.map((chat) => {
+          if ((chat._id?.toString?.() || chat._id) !== (chatId?.toString?.() || chatId)) return chat;
+          const unreadCount =
+            (chat.unreadCount || 0) +
+            ((selectedChatRef.current?._id?.toString?.() || selectedChatRef.current?._id) === (chatId?.toString?.() || chatId) ? 0 : 1);
+          return {
+            ...chat,
+            lastMessage: enrichedMessage.text || `[${enrichedMessage.mediaType}]`,
+            unreadCount
+          };
+        })
       );
 
-      // If the currently open chat is the one that received the message, update it too
+      if ((selectedChatRef.current?._id?.toString?.() || selectedChatRef.current?._id) === (chatId?.toString?.() || chatId)) {
+        markChatMessagesRead(chatId);
+      }
+
       setSelectedChat((prev) =>
         prev && ((prev._id?.toString?.() || prev._id) === (chatId?.toString?.() || chatId))
           ? { ...prev, lastMessage: enrichedMessage.text || `[${enrichedMessage.mediaType}]` }
           : prev
       );
+
+      addNotification('New message', `${senderName} sent a message`);
+    });
+
+    socket.on('messageStatusUpdate', ({ messageId, messageIds, status }) => {
+      setChatMessages((prev) => {
+        const updated = {};
+        Object.keys(prev).forEach((chatId) => {
+          updated[chatId] = prev[chatId].map((msg) => {
+            const matches = messageId ? msg._id === messageId : messageIds?.includes?.(msg._id);
+            return matches ? { ...msg, status } : msg;
+          });
+        });
+        return updated;
+      });
     });
 
     socket.on('userStatusChanged', ({ userId, isOnline, lastSeen }) => {
       setChats((prev) =>
-        prev.map((chat) =>
-          chat._id === userId ? { ...chat, isOnline, lastSeen } : chat
-        )
+        prev.map((chat) => {
+          const isCurrent =
+            (chat._id?.toString?.() || chat._id) === (userId?.toString?.() || userId);
+          if (!isCurrent) return chat;
+          if (chat.isOnline === false && isOnline) {
+            addNotification('User online', `${chat.name} is now online`);
+          }
+          return { ...chat, isOnline, lastSeen };
+        })
       );
 
       setSelectedChat((prev) =>
-        prev && prev._id === userId ? { ...prev, isOnline, lastSeen } : prev
+        prev && ((prev._id?.toString?.() || prev._id) === (userId?.toString?.() || userId))
+          ? { ...prev, isOnline, lastSeen }
+          : prev
       );
     });
 
@@ -302,7 +378,7 @@ function App() {
             return lastMsg
               ? { ...chat, lastMessage: lastMsg.text || `[${lastMsg.mediaType}]` }
               : chat;
-          } catch (err) {
+          } catch {
             return chat;
           }
         })
@@ -366,7 +442,7 @@ function App() {
       })
       .catch(() => logout());
     }
-  }, [token]);
+  }, [token, user]);
 
   const startRecording = async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -495,6 +571,26 @@ function App() {
         onSave={handleProfileSave}
         loading={loading}
       />
+
+      <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 999, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {notifications.map((note) => (
+          <div
+            key={note.id}
+            style={{
+              minWidth: '280px',
+              background: '#111827',
+              border: '1px solid #334155',
+              borderRadius: '16px',
+              padding: '14px 18px',
+              boxShadow: '0 20px 50px rgba(15, 23, 42, 0.45)',
+              color: '#e2e8f0'
+            }}
+          >
+            <div style={{ fontWeight: 700, marginBottom: '6px' }}>{note.title}</div>
+            <div style={{ fontSize: '13px', color: '#cbd5e1' }}>{note.message}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

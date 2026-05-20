@@ -107,8 +107,35 @@ const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout, on
                 )}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: '500' }}>{chat.name}</div>
-                <div style={{ fontSize: '13px', color: '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                  <div style={{ fontWeight: '500' }}>{chat.name}</div>
+                  {chat.unreadCount > 0 && (
+                    <div
+                      style={{
+                        background: '#2563eb',
+                        color: '#fff',
+                        borderRadius: '999px',
+                        padding: '2px 8px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        minWidth: '24px',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {chat.unreadCount}
+                    </div>
+                  )}
+                </div>
+                <div
+                  style={{
+                    fontSize: '13px',
+                    color: '#94a3b8',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    fontWeight: chat.unreadCount > 0 ? 700 : 400
+                  }}
+                >
                   {chat.lastMessage ? chat.lastMessage : 'No messages yet'}
                 </div>
               </div>
