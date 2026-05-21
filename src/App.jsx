@@ -22,7 +22,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [profileForm, setProfileForm] = useState({ name: '', email: '', phone: '', avatar: '' });
-  const [notifications, setNotifications] = useState([]);
+
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const socketRef = useRef(null);
@@ -67,13 +67,7 @@ function App() {
     });
   };
 
-  const addNotification = (title, message) => {
-    const id = `${Date.now()}-${Math.random()}`;
-    setNotifications((prev) => [...prev, { id, title, message }]);
-    setTimeout(() => {
-      setNotifications((prev) => prev.filter((item) => item.id !== id));
-    }, 4000);
-  };
+
 
   const markChatMessagesRead = (chatId) => {
     if (!socketRef.current || !chatId) return;
@@ -258,10 +252,10 @@ function App() {
       const senderId = message.sender;
       const receiverId = message.receiver;
       const chatId = senderId === user._id ? receiverId : senderId;
-      const senderChat = chatsRef.current.find(
+      chatsRef.current.find(
         (chat) => (chat._id?.toString?.() || chat._id) === (senderId?.toString?.() || senderId)
       );
-      const senderName = senderChat?.name || 'New message';
+
 
       const enrichedMessage = {
         ...message,
@@ -305,7 +299,7 @@ function App() {
           : prev
       );
 
-      addNotification('New message', `${senderName} sent a message`);
+
     });
 
     socket.on('messageStatusUpdate', ({ messageId, messageIds, status }) => {
@@ -327,9 +321,7 @@ function App() {
           const isCurrent =
             (chat._id?.toString?.() || chat._id) === (userId?.toString?.() || userId);
           if (!isCurrent) return chat;
-          if (chat.isOnline === false && isOnline) {
-            addNotification('User online', `${chat.name} is now online`);
-          }
+
           return { ...chat, isOnline, lastSeen };
         })
       );
@@ -356,11 +348,16 @@ function App() {
     });
   }, [token]);
 
+  // Fetch missing chat.lastMessage once after initial chat load.
+  // Previously this effect ran whenever `chats` changed, which caused flickering
+  // (chat.lastMessage being overwritten back and forth while socket updates).
   useEffect(() => {
     if (!token || chats.length === 0) return;
 
     const chatsMissingLastMessage = chats.filter((chat) => !chat.lastMessage);
     if (chatsMissingLastMessage.length === 0) return;
+
+    let cancelled = false;
 
     const fetchLastMessages = async () => {
       const updatedChats = await Promise.all(
@@ -384,11 +381,17 @@ function App() {
         })
       );
 
-      setChats(updatedChats);
+      if (!cancelled) setChats(updatedChats);
     };
 
     fetchLastMessages();
-  }, [token, chats]);
+
+    return () => {
+      cancelled = true;
+    };
+    // Depend only on `token` and initial list load changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, token ? chats.length : 0]);
 
   useEffect(() => {
     if (!selectedChat?._id || !token) return;
@@ -511,6 +514,7 @@ function App() {
   const currentMessages = selectedChat ? chatMessages[selectedChat._id] || [] : [];
 
   if (!token) {
+
     return (
       <AuthForm
         apiUrl={API_URL}
@@ -572,25 +576,7 @@ function App() {
         loading={loading}
       />
 
-      <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 999, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {notifications.map((note) => (
-          <div
-            key={note.id}
-            style={{
-              minWidth: '280px',
-              background: '#111827',
-              border: '1px solid #334155',
-              borderRadius: '16px',
-              padding: '14px 18px',
-              boxShadow: '0 20px 50px rgba(15, 23, 42, 0.45)',
-              color: '#e2e8f0'
-            }}
-          >
-            <div style={{ fontWeight: 700, marginBottom: '6px' }}>{note.title}</div>
-            <div style={{ fontSize: '13px', color: '#cbd5e1' }}>{note.message}</div>
-          </div>
-        ))}
-      </div>
+
     </div>
   );
 }

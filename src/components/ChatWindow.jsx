@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import MessageInput from './MessageInput';
 import CompactAudioPlayer from './CompactAudioPlayer';
+import TypingBubble from './TypingBubble';
+
 
 const ChatWindow = ({
   selectedChat,
@@ -13,8 +15,11 @@ const ChatWindow = ({
   sendMessage,
   sendMediaMessage,
   startRecording,
-  stopRecording
+  stopRecording,
+  isOtherTyping,
+  otherTypingName
 }) => {
+
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -77,6 +82,7 @@ const ChatWindow = ({
             No messages yet. Say hello!
           </div>
         ) : (
+
           currentMessages.map((msg) => (
             <div key={msg._id} style={{ marginBottom: '15px', textAlign: msg.sender?.toString() === user._id?.toString() ? 'right' : 'left' }}>
               <div style={{ display: 'inline-block', padding: '12px 18px', borderRadius: '18px', background: msg.sender?.toString() === user._id?.toString() ? '#10b981' : '#334155', maxWidth: isMobile ? '90%' : '70%', boxSizing: 'border-box', overflowWrap: 'anywhere' }}>
@@ -113,8 +119,12 @@ const ChatWindow = ({
             </div>
           ))
         )}
+        <div style={{ marginTop: 8 }}>
+          <TypingBubble isOtherTyping={isOtherTyping} otherName={otherTypingName} />
+        </div>
         <div ref={messagesEndRef} />
       </div>
+
 
       <div style={{ padding: '20px', background: '#1e2937' }}>
         <MessageInput
