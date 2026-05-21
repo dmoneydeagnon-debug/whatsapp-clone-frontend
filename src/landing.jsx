@@ -170,17 +170,22 @@ const LandingPage = () => {
           <div className="logo">💬 FunChat</div>
 
           <div className="nav-links">
-            <a href="#">Features</a>
-            <a href="#">Security</a>
-            <a href="#">About</a>
-            <a href="#">FAQ</a>
+            <a href="/features">Features</a>
+            <a href="/security">Security</a>
+            <a href="/about">About</a>
+            <a href="/faq">FAQ</a>
           </div>
 
           <div className="nav-buttons">
-            <button className="login">Login</button>
-            <button className="cta">Get Started</button>
+            <a href="/login" className="nav-link-button login" style={{ display: 'inline-block', padding: '8px 14px', borderRadius: 8, color: '#aaa', textDecoration: 'none', marginLeft: 10 }}>
+              Login
+            </a>
+            <a href="/register" className="nav-link-button cta" style={{ display: 'inline-block', padding: '8px 14px', borderRadius: 8, background: '#22c55e', color: 'white', textDecoration: 'none', marginLeft: 10 }}>
+              Get Started
+            </a>
           </div>
         </div>
+
 
         {/* HERO */}
         <div className="hero">
@@ -205,7 +210,7 @@ const LandingPage = () => {
           </div>
 
           <div className="hero-image">
-            <img src="/chat-ui.png" alt="Chat UI" />
+            <img src={"/chat-ui.png"} alt="Chat UI" />
           </div>
         </div>
 
