@@ -1,6 +1,10 @@
 
 
+
+import { Link } from 'react-router-dom';
+
 const LandingPage = () => {
+
   return (
     <>
       <style>{`
@@ -170,19 +174,19 @@ const LandingPage = () => {
           <div className="logo">💬 FunChat</div>
 
           <div className="nav-links">
-            <a href="/features">Features</a>
-            <a href="/security">Security</a>
-            <a href="/about">About</a>
-            <a href="/faq">FAQ</a>
+            <Link to="/features">Features</Link>
+            <Link to="/security">Security</Link>
+            <Link to="/about">About</Link>
+            <Link to="/faq">FAQ</Link>
           </div>
 
           <div className="nav-buttons">
-            <a href="/login" className="nav-link-button login" style={{ display: 'inline-block', padding: '8px 14px', borderRadius: 8, color: '#aaa', textDecoration: 'none', marginLeft: 10 }}>
+            <Link to="/login" className="nav-link-button login" style={{ display: 'inline-block', padding: '8px 14px', borderRadius: 8, color: '#aaa', textDecoration: 'none', marginLeft: 10 }}>
               Login
-            </a>
-            <a href="/register" className="nav-link-button cta" style={{ display: 'inline-block', padding: '8px 14px', borderRadius: 8, background: '#22c55e', color: 'white', textDecoration: 'none', marginLeft: 10 }}>
+            </Link>
+            <Link to="/register" className="nav-link-button cta" style={{ display: 'inline-block', padding: '8px 14px', borderRadius: 8, background: '#22c55e', color: 'white', textDecoration: 'none', marginLeft: 10 }}>
               Get Started
-            </a>
+            </Link>
           </div>
         </div>
 
