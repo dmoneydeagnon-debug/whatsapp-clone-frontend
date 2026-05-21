@@ -1,4 +1,4 @@
-import React from 'react';
+
 import PlaceholderPage from './PlaceholderPage';
 
 export default function FeaturesPage() {

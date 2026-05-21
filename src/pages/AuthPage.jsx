@@ -1,4 +1,4 @@
-import React from 'react';
+
 import App from '../App';
 
 // Thin wrapper so router paths can map to the existing AuthForm UI inside App.jsx.

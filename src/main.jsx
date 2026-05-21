@@ -12,7 +12,7 @@ import FeaturesPage from './pages/FeaturesPage.jsx'
 import SecurityPage from './pages/SecurityPage.jsx'
 import FaqPage from './pages/FaqPage.jsx'
 
-function AppRouter() {
+export function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
@@ -36,4 +36,5 @@ createRoot(document.getElementById('root')).render(
     </GoogleOAuthProvider>
   </StrictMode>
 )
+
 
