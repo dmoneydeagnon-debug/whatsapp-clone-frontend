@@ -43,7 +43,16 @@ const LandingPage = () => {
           font-weight: bold;
           font-size: 20px;
           color: #22c55e;
+          display: flex;
+          align-items: center;
         }
+
+        .funchat-logo {
+          height: 26px;
+          width: auto;
+          display: block;
+        }
+
 
         .nav-links a {
           margin: 0 15px;
@@ -241,7 +250,17 @@ const LandingPage = () => {
       <div className="container">
         {/* NAVBAR */}
         <div className="navbar">
-          <div className="logo">💬 FunChat</div>
+          <div className="logo">
+            <img
+              src="/funchat_logo.png"
+              alt="FunChat"
+              className="funchat-logo"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
+
 
           <div className="nav-links">
             <Link to="/features">Features</Link>
@@ -254,9 +273,7 @@ const LandingPage = () => {
             <Link to="/login" className="nav-link-button login" style={{ display: 'inline-block', padding: '8px 14px', borderRadius: 8, color: '#aaa', textDecoration: 'none', marginLeft: 10 }}>
               Login
             </Link>
-            <Link to="/register" className="nav-link-button cta" style={{ display: 'inline-block', padding: '8px 14px', borderRadius: 8, background: '#22c55e', color: 'white', textDecoration: 'none', marginLeft: 10 }}>
-              Get Started
-            </Link>
+
           </div>
         </div>
 
