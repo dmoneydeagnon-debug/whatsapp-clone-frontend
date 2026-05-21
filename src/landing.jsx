@@ -277,7 +277,7 @@ const LandingPage = () => {
           </div>
 
           <div className="hero-image">
-            <img src={"/chat-ui.png"} alt="Chat UI" />
+            <img src={"/chat-ui.png"} alt="Chat UI" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
           </div>
         </div>
 
