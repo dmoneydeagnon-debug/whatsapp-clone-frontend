@@ -202,9 +202,22 @@ const LandingPage = () => {
             </p>
 
             <div className="hero-buttons">
-              <button className="cta">Start Chatting →</button>
-              <button className="outline">Learn More</button>
+              <a
+                href="/register"
+                className="cta"
+                style={{ display: 'inline-block', padding: '10px 16px', borderRadius: 8, textDecoration: 'none', color: 'white', marginRight: 10 }}
+              >
+                Start Chatting →
+              </a>
+              <a
+                href="/about"
+                className="outline"
+                style={{ display: 'inline-block', padding: '10px 16px', borderRadius: 8, border: '1px solid #444', textDecoration: 'none', color: 'white' }}
+              >
+                Learn More
+              </a>
             </div>
+
 
             <div className="users">👥 Join 10,000+ users who love FunChat</div>
           </div>
@@ -248,8 +261,15 @@ const LandingPage = () => {
         {/* CTA */}
         <div className="cta-section">
           <p>Ready to start your journey?</p>
-          <button className="cta">Start Chatting Now →</button>
+          <a
+            href="/register"
+            className="cta"
+            style={{ display: 'inline-block', padding: '12px 20px', borderRadius: 8, textDecoration: 'none', color: 'white' }}
+          >
+            Start Chatting Now →
+          </a>
         </div>
+
 
         {/* FOOTER */}
         <div className="footer">© 2026 FunChat. All rights reserved.</div>
