@@ -6,8 +6,7 @@ const MessageInput = ({
   sendMessage,
   sendMediaMessage,
   startRecording,
-  stopRecording,
-  isMobile
+  stopRecording
 }) => {
   const fileInputRef = useRef(null);
 

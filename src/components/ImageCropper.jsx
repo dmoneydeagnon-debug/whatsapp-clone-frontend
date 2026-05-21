@@ -61,7 +61,11 @@ const ImageCropper = ({ imageSrc, boxSize = 240, onCancel, onCrop }) => {
 
   const onPointerUp = (e) => {
     dragging.current = false;
-    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch {}
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
   };
 
   const handleZoom = (e) => {
