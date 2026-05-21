@@ -19,6 +19,19 @@ const LandingPage = () => {
           padding: 20px 8%;
         }
 
+        .nav-links {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+
+        .nav-buttons {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+
         /* NAVBAR */
         .navbar {
           display: flex;
@@ -152,20 +165,57 @@ const LandingPage = () => {
 
         /* MOBILE */
         @media (max-width: 900px) {
+          .container {
+            padding: 18px 16px;
+          }
+
+          .navbar {
+            flex-direction: column;
+            gap: 14px;
+          }
+
+          .nav-links {
+            justify-content: center;
+            flex-wrap: wrap;
+          }
+
+          .nav-buttons {
+            justify-content: center;
+            flex-wrap: wrap;
+          }
+
           .hero {
             flex-direction: column;
             text-align: center;
+            margin-top: 30px;
+          }
+
+          .hero-text {
+            max-width: 100%;
+          }
+
+          .hero h1 {
+            font-size: 36px;
           }
 
           .hero-image img {
             width: 100%;
-            margin-top: 30px;
+            margin-top: 20px;
           }
 
           .feature-grid {
             grid-template-columns: 1fr;
           }
+
+          .feature {
+            text-align: left;
+          }
+
+          .cta-section {
+            padding: 22px;
+          }
         }
+
       `}</style>
 
       <div className="container">
