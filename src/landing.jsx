@@ -169,19 +169,39 @@ const LandingPage = () => {
             padding: 18px 16px;
           }
 
+          /* Keep navbar in a single straight row */
           .navbar {
-            flex-direction: column;
-            gap: 14px;
+            flex-direction: row;
+            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
           }
 
+          /* Shrink links to fit on mobile without wrapping */
           .nav-links {
             justify-content: center;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            gap: 10px;
+          }
+
+          .nav-links a {
+            margin: 0 8px;
+            font-size: 13px;
+            white-space: nowrap;
           }
 
           .nav-buttons {
-            justify-content: center;
-            flex-wrap: wrap;
+            justify-content: flex-end;
+            flex-wrap: nowrap;
+            gap: 8px;
+          }
+
+          .nav-buttons button,
+          .nav-buttons a {
+            padding: 6px 10px;
+            font-size: 13px;
+            margin-left: 0 !important;
+            white-space: nowrap;
           }
 
           .hero {
