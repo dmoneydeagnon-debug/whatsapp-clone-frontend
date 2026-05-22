@@ -13,6 +13,20 @@ const LandingPage = () => {
           font-family: 'Segoe UI', sans-serif;
           background: #0b1220;
           color: white;
+          min-height: 100vh;
+        }
+
+        html, #root {
+          height: 100%;
+        }
+
+        /* Prevent “floating” due to default body/#root sizing */
+        #root {
+          display: flex;
+        }
+
+        .container {
+          min-height: 100vh;
         }
 
         .container {
