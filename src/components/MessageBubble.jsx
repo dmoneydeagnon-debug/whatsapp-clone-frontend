@@ -4,6 +4,9 @@ import CompactAudioPlayer from './CompactAudioPlayer';
 const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
 const MessageBubble = ({ msg, isMine, isMobile, getPlayableAudioUrl, onReact }) => {
+  // Prevent white-screen crashes on reload if a message is temporarily undefined
+  if (!msg) return null;
+
   const [pickerOpen, setPickerOpen] = useState(false);
   const rootRef = useRef(null);
   const longPressTimerRef = useRef(null);

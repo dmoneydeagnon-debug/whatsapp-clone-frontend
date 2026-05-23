@@ -654,6 +654,7 @@ function App() {
             otherTypingName={typingByChat[selectedChat?._id]?.name}
             onReact={(messageId, emoji) => {
               if (!socketRef.current || !selectedChat?._id || !user?._id) return;
+              console.log('emit addReaction', { messageId, receiver: selectedChat._id, emoji });
               socketRef.current.emit('addReaction', {
                 messageId,
                 receiver: selectedChat._id,
