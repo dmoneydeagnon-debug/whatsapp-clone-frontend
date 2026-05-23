@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import MessageInput from './MessageInput';
-import CompactAudioPlayer from './CompactAudioPlayer';
 import TypingBubble from './TypingBubble';
+import MessageBubble from './MessageBubble';
+
 
 
 const ChatWindow = ({
@@ -17,7 +18,10 @@ const ChatWindow = ({
   startRecording,
   stopRecording,
   isOtherTyping,
-  otherTypingName
+  otherTypingName,
+  onTyping,
+  onStopTyping,
+  onReact
 }) => {
 
   const messagesEndRef = useRef(null);
@@ -69,8 +73,8 @@ const ChatWindow = ({
           </div>
           <div>
             <h2 style={{ margin: 0 }}>{selectedChat.name}</h2>
-            <div style={{ fontSize: '13px', color: selectedChat.isOnline ? '#10b981' : '#94a3b8' }}>
-              {selectedChat.isOnline ? 'Online' : `Last seen ${new Date(selectedChat.lastSeen).toLocaleTimeString()}`}
+            <div style={{ fontSize: '13px', color: isOtherTyping ? '#93c5fd' : (selectedChat.isOnline ? '#10b981' : '#94a3b8') }}>
+              {isOtherTyping ? `${otherTypingName || 'Someone'} typing...` : (selectedChat.isOnline ? 'Online' : `Last seen ${new Date(selectedChat.lastSeen).toLocaleTimeString()}`)}
             </div>
           </div>
         </div>
@@ -85,20 +89,14 @@ const ChatWindow = ({
 
           currentMessages.map((msg) => (
             <div key={msg._id} style={{ marginBottom: '15px', textAlign: msg.sender?.toString() === user._id?.toString() ? 'right' : 'left' }}>
-              <div style={{ display: 'inline-block', padding: '12px 18px', borderRadius: '18px', background: msg.sender?.toString() === user._id?.toString() ? '#10b981' : '#334155', maxWidth: isMobile ? '90%' : '70%', boxSizing: 'border-box', overflowWrap: 'anywhere' }}>
-                {msg.mediaType === 'image' && <img src={msg.mediaUrl} style={{ maxWidth: '200px', borderRadius: '10px' }} />}
-                {msg.mediaType === 'voice' && (
-                  <CompactAudioPlayer src={getPlayableAudioUrl(msg.mediaUrl)} isMobile={isMobile} />
-                )}
-                {msg.mediaType === 'file' && (
-                  <div>
-                    <a href={msg.mediaUrl} target="_blank" rel="noreferrer" style={{ color: '#a5f3fc', wordBreak: 'break-all' }}>
-                      Download file
-                    </a>
-                  </div>
-                )}
-                {msg.text}
-              </div>
+              <MessageBubble
+                msg={msg}
+                isMine={msg.sender?.toString() === user._id?.toString()}
+                isMobile={isMobile}
+                getPlayableAudioUrl={getPlayableAudioUrl}
+                onReact={onReact}
+              />
+
               <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px', justifyContent: msg.sender?.toString() === user._id?.toString() ? 'flex-end' : 'flex-start' }}>
                 <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 {msg.sender?.toString() === user._id?.toString() && (
@@ -135,6 +133,9 @@ const ChatWindow = ({
           startRecording={startRecording}
           stopRecording={stopRecording}
           isMobile={isMobile}
+          onTyping={onTyping}
+          onStopTyping={onStopTyping}
+          selectedChat={selectedChat}
         />
       </div>
     </>

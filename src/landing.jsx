@@ -93,7 +93,7 @@ const LandingPage = () => {
         }
 
         /* HERO */
-        .hero {
+        .landing-hero {
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -101,24 +101,24 @@ const LandingPage = () => {
           flex-wrap: wrap;
         }
 
-        .hero-text {
+        .landing-hero-text {
           max-width: 500px;
         }
 
-        .hero h1 {
+        .landing-hero h1 {
           font-size: 48px;
         }
 
-        .hero span {
+        .landing-hero span {
           color: #22c55e;
         }
 
-        .hero p {
+        .landing-hero p {
           color: #aaa;
           margin: 20px 0;
         }
 
-        .hero-buttons button {
+        .landing-hero-buttons button {
           margin-right: 10px;
           padding: 10px 16px;
           border-radius: 8px;
@@ -137,7 +137,7 @@ const LandingPage = () => {
           color: #aaa;
         }
 
-        .hero-image img {
+        .landing-hero-image img {
           width: 520px;
           border-radius: 20px;
           box-shadow: 0 0 50px rgba(34, 197, 94, 0.3);
@@ -227,21 +227,21 @@ const LandingPage = () => {
             white-space: nowrap;
           }
 
-          .hero {
+          .landing-hero {
             flex-direction: column;
             text-align: center;
             margin-top: 30px;
           }
 
-          .hero-text {
+          .landing-hero-text {
             max-width: 100%;
           }
 
-          .hero h1 {
+          .landing-hero h1 {
             font-size: 36px;
           }
 
-          .hero-image img {
+          .landing-hero-image img {
             width: 100%;
             margin-top: 20px;
           }
@@ -293,8 +293,8 @@ const LandingPage = () => {
 
 
         {/* HERO */}
-        <div className="hero">
-          <div className="hero-text">
+        <div className="landing-hero">
+          <div className="landing-hero-text">
             <h1>
               Chat. Connect. <br />
               <span>Have Fun 👋</span>
@@ -306,7 +306,7 @@ const LandingPage = () => {
               anytime, anywhere.
             </p>
 
-            <div className="hero-buttons">
+            <div className="landing-hero-buttons">
               <a
                 href="/register"
                 className="cta"
@@ -327,7 +327,7 @@ const LandingPage = () => {
             <div className="users">👥 Join 10,000+ users who love FunChat</div>
           </div>
 
-          <div className="hero-image">
+          <div className="landing-hero-image">
             <img src={"/chat-ui.png"} alt="Chat UI" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
           </div>
         </div>

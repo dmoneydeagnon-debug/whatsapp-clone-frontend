@@ -1,7 +1,13 @@
-# TODO
+# TODO - Message Reactions (Emoji)
 
-- [ ] Fix landing page logo not showing by ensuring `funchat_logo.png` is served from Vite `public/`.
-- [ ] Copy `funchat_logo.png` into `public/funchat_logo.png`.
-- [x] Verify landing page loads `/funchat_logo.png`.
+- [x] Backend: Extend Message schema with reactions field.
+- [x] Backend: Add socket handler `addReaction` and emit `messageReaction` to both participants.
 
+
+
+- [ ] Frontend: Add emoji picker UI to message bubbles (right-click desktop, long-press mobile).
+
+- [ ] Frontend: Render reactions per message (grouped by emoji with counts).
+- [ ] Frontend: Emit `addReaction` on emoji select and update local state on `messageReaction`.
+- [ ] Manual test: react to messages with 2 users/devices, verify persistence after refresh.
 

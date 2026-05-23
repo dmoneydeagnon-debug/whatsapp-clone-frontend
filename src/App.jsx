@@ -14,6 +14,9 @@ function App() {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [messageText, setMessageText] = useState('');
+
+  // typing: chatId -> { isTyping: boolean, name: string }
+  const [typingByChat, setTypingByChat] = useState({});
   const [isLogin, setIsLogin] = useState(() => {
     const mode = localStorage.getItem('authMode');
     return mode !== 'register';
@@ -252,6 +255,56 @@ function App() {
       console.warn('Socket disconnected', reason);
     });
 
+    socket.on('typing', ({ chatId, sender, senderName }) => {
+      // chatId is the other user's id in this app logic (sender/receiver)
+      if (!chatId) return;
+      setTypingByChat((prev) => ({
+        ...prev,
+        [chatId]: { isTyping: true, name: senderName || 'Someone', senderId: sender }
+      }));
+
+      setChats((prev) =>
+        prev.map((c) =>
+          (c._id?.toString?.() || c._id) === (chatId?.toString?.() || chatId)
+            ? { ...c, lastMessage: 'typing...' }
+            : c
+        )
+      );
+
+      setSelectedChat((prev) =>
+        prev && ((prev._id?.toString?.() || prev._id) === (chatId?.toString?.() || chatId))
+          ? { ...prev, lastMessage: 'typing...' }
+          : prev
+      );
+    });
+
+    socket.on('stopTyping', ({ chatId }) => {
+      if (!chatId) return;
+      setTypingByChat((prev) => {
+        const next = { ...prev };
+        if (next[chatId]) {
+          next[chatId] = { ...next[chatId], isTyping: false };
+        }
+        return next;
+      });
+
+      // restore lastMessage by leaving socket updates to receiveMessage/initial fetch.
+      // Here we just clear the typing placeholder; actual text will come from the last message.
+      setChats((prev) =>
+        prev.map((c) =>
+          (c._id?.toString?.() || c._id) === (chatId?.toString?.() || chatId)
+            ? { ...c }
+            : c
+        )
+      );
+
+      setSelectedChat((prev) =>
+        prev && ((prev._id?.toString?.() || prev._id) === (chatId?.toString?.() || chatId))
+          ? { ...prev }
+          : prev
+      );
+    });
+
     socket.on('receiveMessage', (message) => {
       const senderId = message.sender;
       const receiverId = message.receiver;
@@ -306,7 +359,21 @@ function App() {
 
     });
 
+    socket.on('messageReaction', ({ messageId, reactions }) => {
+      setChatMessages((prev) => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach((chatId) => {
+          updated[chatId] = updated[chatId].map((msg) => {
+            if (msg._id === messageId) return { ...msg, reactions };
+            return msg;
+          });
+        });
+        return updated;
+      });
+    });
+
     socket.on('messageStatusUpdate', ({ messageId, messageIds, status }) => {
+
       setChatMessages((prev) => {
         const updated = {};
         Object.keys(prev).forEach((chatId) => {
@@ -503,6 +570,24 @@ function App() {
     mediaRecorderRef.current?.stop();
   };
 
+  const emitTyping = (chatId) => {
+    if (!socketRef.current || !chatId || !user?._id) return;
+    socketRef.current.emit('typing', {
+      receiver: chatId,
+      sender: user._id,
+      chatId
+    });
+  };
+
+  const emitStopTyping = (chatId) => {
+    if (!socketRef.current || !chatId || !user?._id) return;
+    socketRef.current.emit('stopTyping', {
+      receiver: chatId,
+      sender: user._id,
+      chatId
+    });
+  };
+
   const sendMessage = () => {
     if (!socketRef.current || !messageText.trim() || !selectedChat || !user) return;
 
@@ -563,6 +648,18 @@ function App() {
             sendMediaMessage={sendMediaMessage}
             startRecording={startRecording}
             stopRecording={stopRecording}
+            onTyping={() => emitTyping(selectedChat?._id)}
+            onStopTyping={() => emitStopTyping(selectedChat?._id)}
+            isOtherTyping={!!typingByChat[selectedChat?._id]?.isTyping}
+            otherTypingName={typingByChat[selectedChat?._id]?.name}
+            onReact={(messageId, emoji) => {
+              if (!socketRef.current || !selectedChat?._id || !user?._id) return;
+              socketRef.current.emit('addReaction', {
+                messageId,
+                receiver: selectedChat._id,
+                emoji
+              });
+            }}
           />
         ) : (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>

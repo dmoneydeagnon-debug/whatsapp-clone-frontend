@@ -6,7 +6,10 @@ const MessageInput = ({
   sendMessage,
   sendMediaMessage,
   startRecording,
-  stopRecording
+  stopRecording,
+  onTyping,
+  onStopTyping,
+  selectedChat
 }) => {
   const fileInputRef = useRef(null);
 
@@ -61,8 +64,26 @@ const MessageInput = ({
         <input
           type="text"
           value={messageText}
-          onChange={(e) => setMessageText(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+          onChange={(e) => {
+            const next = e.target.value;
+            setMessageText(next);
+
+            if (onTyping && selectedChat?._id && next.trim().length > 0) {
+              onTyping();
+            }
+            if (next.trim().length === 0 && onStopTyping && selectedChat?._id) {
+              onStopTyping();
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              sendMessage();
+              onStopTyping?.();
+            }
+          }}
+          onBlur={() => {
+            onStopTyping?.();
+          }}
           placeholder="Type a message..."
           style={{
             width: '100%',
