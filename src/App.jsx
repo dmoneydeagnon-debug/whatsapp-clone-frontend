@@ -472,8 +472,19 @@ function App() {
       .get(`${API_URL}/api/groups/my`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      .then((res) => setGroupChats(res.data))
+      .then((res) => {
+        console.log(
+          'Groups loaded:',
+          Array.isArray(res.data) ? res.data.length : res.data
+        );
+        setGroupChats(res.data);
+      })
       .catch((err) => {
+        console.log(
+          'Groups fetch error:',
+          err.response?.status,
+          err.response?.data || err.message
+        );
         if (err.response?.status === 401) logout();
       });
   }, [token]);
