@@ -463,6 +463,7 @@ function App() {
       })
       .then((res) => setChats(res.data))
       .catch((err) => {
+        console.log('Groups fetch error:', err.response?.status, err.response?.data || err.message);
         if (err.response?.status === 401) logout();
       });
 
