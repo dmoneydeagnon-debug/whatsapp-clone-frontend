@@ -1,9 +1,15 @@
 
 
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const LandingPage = () => {
+  const navigate = useNavigate();
+
+  // If user is already logged in, skip landing.
+  if (localStorage.getItem('token')) {
+    navigate('/login', { replace: true });
+  }
 
   return (
     <>

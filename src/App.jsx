@@ -377,12 +377,29 @@ function App() {
     socket.on('messageReaction', ({ messageId, reactions }) => {
       setChatMessages((prev) => {
         const updated = { ...prev };
+
+        // Only update the currently displayed chat to ensure instant UI feedback.
+        // (Your state shape is chatId -> messages[])
+        if (selectedChatRef.current?._id) {
+          const currentChatId = selectedChatRef.current._id;
+          const list = updated[currentChatId] || [];
+
+          updated[currentChatId] = list.map((msg) => {
+            if (msg._id?.toString?.() === messageId?.toString?.()) return { ...msg, reactions };
+            return msg;
+          });
+
+          return updated;
+        }
+
+        // Fallback: update wherever the message exists.
         Object.keys(updated).forEach((chatId) => {
           updated[chatId] = updated[chatId].map((msg) => {
-            if (msg._id === messageId) return { ...msg, reactions };
+            if (msg._id?.toString?.() === messageId?.toString?.()) return { ...msg, reactions };
             return msg;
           });
         });
+
         return updated;
       });
     });
