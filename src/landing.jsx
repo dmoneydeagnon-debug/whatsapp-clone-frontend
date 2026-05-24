@@ -2,14 +2,17 @@
 
 
 import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const LandingPage = () => {
   const navigate = useNavigate();
 
   // If user is already logged in, skip landing.
-  if (localStorage.getItem('token')) {
-    navigate('/login', { replace: true });
-  }
+  useEffect(() => {
+    if (localStorage.getItem('token')) {
+      navigate('/login', { replace: true });
+    }
+  }, [navigate]);
 
   return (
     <>
