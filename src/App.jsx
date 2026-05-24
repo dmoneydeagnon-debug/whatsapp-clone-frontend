@@ -13,7 +13,6 @@ function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [chats, setChats] = useState([]);
-  const [groupChats, setGroupChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
 
   const [messageText, setMessageText] = useState('');
@@ -456,35 +455,13 @@ function App() {
   useEffect(() => {
     if (!token) return;
 
-    // Fetch 1:1 chats (existing behavior)
+    // Fetch 1:1 chats
     axios
       .get(`${API_URL}/api/auth/users`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then((res) => setChats(res.data))
       .catch((err) => {
-        console.log('Groups fetch error:', err.response?.status, err.response?.data || err.message);
-        if (err.response?.status === 401) logout();
-      });
-
-    // Fetch group chats
-    axios
-      .get(`${API_URL}/api/groups/my`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then((res) => {
-        console.log(
-          'Groups loaded:',
-          Array.isArray(res.data) ? res.data.length : res.data
-        );
-        setGroupChats(res.data);
-      })
-      .catch((err) => {
-        console.log(
-          'Groups fetch error:',
-          err.response?.status,
-          err.response?.data || err.message
-        );
         if (err.response?.status === 401) logout();
       });
   }, [token]);
@@ -583,6 +560,7 @@ function App() {
             return;
           }
 
+          console.log('me:', res.data?.id, res.data);
           setUser({
             ...res.data,
             _id: res.data.id
@@ -711,7 +689,7 @@ function App() {
   return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: isMobile ? 'column' : 'row', background: '#0f172a', color: 'white', overflow: 'hidden' }}>
       <ChatSidebar
-        chats={[...chats, ...groupChats]}
+        chats={chats}
         selectedChat={selectedChat}
         onSelectChat={setSelectedChat}
         isMobile={isMobile}
