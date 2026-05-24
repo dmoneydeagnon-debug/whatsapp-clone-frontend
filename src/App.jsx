@@ -13,7 +13,9 @@ function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [chats, setChats] = useState([]);
+  const [groupChats, setGroupChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
+
   const [messageText, setMessageText] = useState('');
 
   // typing: chatId -> { isTyping: boolean, name: string }
@@ -239,6 +241,9 @@ function App() {
   useEffect(() => {
     if (!token || !user?._id) return;
 
+    setAppInitializing(true);
+
+
     // Token is valid and user is ready -> start socket init gating.
     // Avoid setState synchronously in an effect body.
 
@@ -451,13 +456,25 @@ function App() {
   useEffect(() => {
     if (!token) return;
 
-    axios.get(`${API_URL}/api/auth/users`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    .then((res) => setChats(res.data))
-    .catch((err) => {
-      if (err.response?.status === 401) logout();
-    });
+    // Fetch 1:1 chats (existing behavior)
+    axios
+      .get(`${API_URL}/api/auth/users`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((res) => setChats(res.data))
+      .catch((err) => {
+        if (err.response?.status === 401) logout();
+      });
+
+    // Fetch group chats
+    axios
+      .get(`${API_URL}/api/groups/my`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((res) => setGroupChats(res.data))
+      .catch((err) => {
+        if (err.response?.status === 401) logout();
+      });
   }, [token]);
 
   // Fetch missing chat.lastMessage once after initial chat load.
@@ -682,7 +699,7 @@ function App() {
   return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: isMobile ? 'column' : 'row', background: '#0f172a', color: 'white', overflow: 'hidden' }}>
       <ChatSidebar
-        chats={chats}
+        chats={[...chats, ...groupChats]}
         selectedChat={selectedChat}
         onSelectChat={setSelectedChat}
         isMobile={isMobile}
