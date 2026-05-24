@@ -5,6 +5,7 @@ import AuthForm from './components/AuthForm';
 import ChatSidebar from './components/ChatSidebar';
 import ChatWindow from './components/ChatWindow';
 import ProfileModal from './components/ProfileModal';
+import Loader3D from './components/Loader3D';
 
 const API_URL = "https://whatsapp-clone-backend-4cpt.onrender.com";
 
@@ -31,6 +32,12 @@ function App() {
   const [profileForm, setProfileForm] = useState({ name: '', email: '', phone: '', avatar: '' });
 
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [appInitializing, setAppInitializing] = useState(() => {
+    // Only show loader for token-based sessions.
+    return !!localStorage.getItem('token');
+  });
+
+  const [socketConnected, setSocketConnected] = useState(false);
 
   const socketRef = useRef(null);
   const chatsRef = useRef([]);
@@ -117,6 +124,9 @@ function App() {
     setChats([]);
     setSelectedChat(null);
     setChatMessages({});
+
+    setSocketConnected(false);
+    setAppInitializing(false);
 
     if (socketRef.current) {
       socketRef.current.disconnect();
@@ -229,6 +239,9 @@ function App() {
   useEffect(() => {
     if (!token || !user?._id) return;
 
+    // Token is valid and user is ready -> start socket init gating.
+    // Avoid setState synchronously in an effect body.
+
     const socket = io(API_URL, {
       auth: { token },
       // prefer long-polling first so environments that block websockets still work
@@ -240,6 +253,8 @@ function App() {
 
     socket.on('connect', () => {
       console.log('Socket connected', socket.id);
+      setSocketConnected(true);
+      setAppInitializing(false);
       socket.emit('join', user._id);
     });
 
@@ -404,7 +419,16 @@ function App() {
       );
     });
 
-    return () => socket.disconnect();
+    // Safety timeout: even if socket never connects, don't block forever.
+    const timeoutId = window.setTimeout(() => {
+      setAppInitializing(false);
+      setSocketConnected(true);
+    }, 10000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      socket.disconnect();
+    };
   }, [token, user?._id]);
 
   useEffect(() => {
@@ -500,21 +524,29 @@ function App() {
 
   useEffect(() => {
     if (token && !user) {
-      axios.get(`${API_URL}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then((res) => {
-        if (!res.data) {
-          logout();
-          return;
-        }
+      // If we have a token, we must validate it before showing the chat UI.
+      // (Already true by default when token exists; avoid setState synchronously.)
 
-        setUser({
-          ...res.data,
-          _id: res.data.id
-        });
-      })
-      .catch(() => logout());
+      axios
+        .get(`${API_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then((res) => {
+          if (!res.data) {
+            logout();
+            return;
+          }
+
+          setUser({
+            ...res.data,
+            _id: res.data.id
+          });
+
+          // Auth is done. Wait for socket connect before leaving loader gate.
+          setAppInitializing(false);
+          setSocketConnected(false);
+        })
+        .catch(() => logout());
     }
   }, [token, user]);
 
@@ -603,7 +635,6 @@ function App() {
   const currentMessages = selectedChat ? chatMessages[selectedChat._id] || [] : [];
 
   if (!token) {
-
     return (
       <AuthForm
         apiUrl={API_URL}
@@ -619,6 +650,15 @@ function App() {
         loading={loading}
         onGoogleLoginSuccess={handleGoogleLoginSuccess}
       />
+    );
+  }
+
+  // Loader gate for token-based sessions: wait for auth/me + socket connect.
+  if (appInitializing || (token && user && !socketConnected)) {
+    return (
+      <div style={{ height: '100dvh', background: '#0f172a' }}>
+        <Loader3D />
+      </div>
     );
   }
 
