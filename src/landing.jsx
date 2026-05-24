@@ -287,6 +287,7 @@ const LandingPage = () => {
 
           <div className="nav-links">
             <Link to="/features">Features</Link>
+
             <Link to="/security">Security</Link>
             <Link to="/about">About</Link>
             <Link to="/faq">FAQ</Link>
@@ -317,14 +318,14 @@ const LandingPage = () => {
 
             <div className="landing-hero-buttons">
               <a
-                href="/register"
+href="/register?signup=1"
                 className="cta"
                 style={{ display: 'inline-block', padding: '10px 16px', borderRadius: 8, textDecoration: 'none', color: 'white', marginRight: 10 }}
               >
                 Start Chatting →
               </a>
               <a
-                href="/about"
+href="/about"
                 className="outline"
                 style={{ display: 'inline-block', padding: '10px 16px', borderRadius: 8, border: '1px solid #444', textDecoration: 'none', color: 'white' }}
               >
