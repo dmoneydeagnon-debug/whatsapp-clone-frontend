@@ -21,7 +21,8 @@ const ChatWindow = ({
   otherTypingName,
   onTyping,
   onStopTyping,
-  onReact
+  onReact,
+  onDeleteMessage
 }) => {
 
   const messagesEndRef = useRef(null);
@@ -95,6 +96,7 @@ const ChatWindow = ({
                 isMobile={isMobile}
                 getPlayableAudioUrl={getPlayableAudioUrl}
                 onReact={onReact}
+                onDeleteMessage={onDeleteMessage}
               />
 
               <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px', justifyContent: msg.sender?.toString() === user._id?.toString() ? 'flex-end' : 'flex-start' }}>

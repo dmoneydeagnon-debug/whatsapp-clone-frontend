@@ -422,6 +422,50 @@ function App() {
       });
     });
 
+    socket.on('messageDeleted', ({ messageId, scope }) => {
+      if (!messageId) return;
+
+      setChatMessages((prev) => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach((chatId) => {
+          updated[chatId] = (updated[chatId] || []).map((msg) => {
+            const isSame = msg._id?.toString?.() === messageId?.toString?.();
+            if (!isSame) return msg;
+
+            if (scope === 'me') {
+              // delete only for me => remove it from my state
+              return null;
+            }
+
+            // delete for everyone => show placeholder
+            return {
+              ...msg,
+              deletedForEveryone: true
+            };
+          }).filter(Boolean);
+        });
+        return updated;
+      });
+
+      // If the currently opened chat got the "me" delete, decrement unread lastMessage is not perfect,
+      // but we keep UI consistent by rebuilding lastMessage from the remaining messages.
+      if (scope === 'me' && selectedChatRef.current?._id) {
+        const currentChatId = selectedChatRef.current._id;
+        setChats((prev) =>
+          prev.map((chat) => {
+            if ((chat._id?.toString?.() || chat._id) !== (currentChatId?.toString?.() || currentChatId)) return chat;
+            const list = (chatMessages[currentChatId] || []).filter((m) => m?._id?.toString?.() !== messageId?.toString?.());
+            const lastMsg = list.length ? list[list.length - 1] : null;
+            return {
+              ...chat,
+              lastMessage: lastMsg ? (lastMsg.text || (lastMsg.mediaType ? `[${lastMsg.mediaType}]` : '')) : '',
+              unreadCount: 0
+            };
+          })
+        );
+      }
+    });
+
     socket.on('userStatusChanged', ({ userId, isOnline, lastSeen }) => {
       setChats((prev) =>
         prev.map((chat) => {
@@ -724,6 +768,10 @@ function App() {
                 receiver: selectedChat._id,
                 emoji
               });
+            }}
+            onDeleteMessage={(messageId, scope) => {
+              if (!socketRef.current || !selectedChat?._id || !user?._id) return;
+              socketRef.current.emit('deleteMessage', { messageId, scope });
             }}
           />
         ) : (

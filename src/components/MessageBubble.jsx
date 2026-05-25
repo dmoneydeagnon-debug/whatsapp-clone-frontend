@@ -3,11 +3,12 @@ import CompactAudioPlayer from './CompactAudioPlayer';
 
 const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
-const MessageBubble = ({ msg, isMine, isMobile, getPlayableAudioUrl, onReact }) => {
+const MessageBubble = ({ msg, isMine, isMobile, getPlayableAudioUrl, onReact, onDeleteMessage }) => {
   // Prevent white-screen crashes on reload if a message is temporarily undefined
   if (!msg) return null;
 
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const rootRef = useRef(null);
   const longPressTimerRef = useRef(null);
 
@@ -29,11 +30,14 @@ const MessageBubble = ({ msg, isMine, isMobile, getPlayableAudioUrl, onReact }) 
     e?.preventDefault?.();
     e?.stopPropagation?.();
     setPickerOpen(true);
+    setDeleteOpen(false);
   };
 
   const closePicker = () => {
     setPickerOpen(false);
   };
+
+  const closeDelete = () => setDeleteOpen(false);
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -89,23 +93,29 @@ const MessageBubble = ({ msg, isMine, isMobile, getPlayableAudioUrl, onReact }) 
           userSelect: 'text'
         }}
       >
-        {msg.mediaType === 'image' && (
-          <img src={msg.mediaUrl} style={{ maxWidth: '200px', borderRadius: '10px' }} />
+        {msg?.deletedForEveryone ? (
+          <div style={{ color: '#e2e8f0', fontStyle: 'italic' }}>This message has been deleted</div>
+        ) : (
+          <>
+            {msg.mediaType === 'image' && (
+              <img src={msg.mediaUrl} style={{ maxWidth: '200px', borderRadius: '10px' }} />
+            )}
+            {msg.mediaType === 'voice' && (
+              <CompactAudioPlayer src={getPlayableAudioUrl(msg.mediaUrl)} isMobile={isMobile} />
+            )}
+            {msg.mediaType === 'file' && (
+              <div>
+                <a href={msg.mediaUrl} target="_blank" rel="noreferrer" style={{ color: '#a5f3fc', wordBreak: 'break-all' }}>
+                  Download file
+                </a>
+              </div>
+            )}
+            {msg.text}
+          </>
         )}
-        {msg.mediaType === 'voice' && (
-          <CompactAudioPlayer src={getPlayableAudioUrl(msg.mediaUrl)} isMobile={isMobile} />
-        )}
-        {msg.mediaType === 'file' && (
-          <div>
-            <a href={msg.mediaUrl} target="_blank" rel="noreferrer" style={{ color: '#a5f3fc', wordBreak: 'break-all' }}>
-              Download file
-            </a>
-          </div>
-        )}
-        {msg.text}
       </div>
 
-      {groupedReactions.length > 0 && (
+      {groupedReactions.length > 0 && !msg?.deletedForEveryone && (
         <div
           style={{
             marginTop: 6,
@@ -157,6 +167,7 @@ const MessageBubble = ({ msg, isMine, isMobile, getPlayableAudioUrl, onReact }) 
             gap: 8,
             boxShadow: '0 10px 30px rgba(0,0,0,0.35)'
           }}
+          onClick={(e) => e.stopPropagation()}
         >
           {EMOJIS.map((emoji) => (
             <button
@@ -180,6 +191,28 @@ const MessageBubble = ({ msg, isMine, isMobile, getPlayableAudioUrl, onReact }) 
               {emoji}
             </button>
           ))}
+
+          <button
+            onClick={() => {
+              closePicker();
+              setDeleteOpen(true);
+            }}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              border: '1px solid #ef4444',
+              background: '#111827',
+              color: '#ef4444',
+              cursor: 'pointer',
+              fontSize: 16,
+              fontWeight: 700
+            }}
+            title="Delete"
+          >
+            🗑️
+          </button>
+
           <button
             onClick={closePicker}
             style={{
@@ -196,6 +229,81 @@ const MessageBubble = ({ msg, isMine, isMobile, getPlayableAudioUrl, onReact }) 
           >
             ✕
           </button>
+        </div>
+      )}
+
+      {deleteOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            zIndex: 10000,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            bottom: isMobile ? 92 : 140,
+            background: '#0b1220',
+            border: '1px solid #1f2937',
+            borderRadius: 12,
+            padding: 12,
+            width: isMobile ? '92vw' : 320,
+            boxShadow: '0 10px 30px rgba(0,0,0,0.35)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={{ fontWeight: 700, marginBottom: 10, color: '#e2e8f0' }}>Delete message</div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button
+              onClick={() => {
+                onDeleteMessage?.(msg._id, 'me');
+                setDeleteOpen(false);
+              }}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: 10,
+                border: '1px solid #334155',
+                background: '#111827',
+                color: '#e2e8f0',
+                cursor: 'pointer'
+              }}
+            >
+              Delete for only me
+            </button>
+
+            <button
+              onClick={() => {
+                onDeleteMessage?.(msg._id, 'everyone');
+                setDeleteOpen(false);
+              }}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: 10,
+                border: '1px solid #ef4444',
+                background: '#111827',
+                color: '#ef4444',
+                cursor: 'pointer',
+                fontWeight: 700
+              }}
+            >
+              Delete for everyone
+            </button>
+
+            <button
+              onClick={closeDelete}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: 10,
+                border: '1px solid #334155',
+                background: '#0f172a',
+                color: '#94a3b8',
+                cursor: 'pointer'
+              }}
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
     </div>
