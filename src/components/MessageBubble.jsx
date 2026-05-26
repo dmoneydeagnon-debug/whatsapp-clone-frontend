@@ -218,14 +218,16 @@ const MessageBubble = ({
         </div>
       )}
 
-      {/* Trash icon aligned to the right side of the message bubble header area */}
+      {/* Trash icon near the middle of the reaction picker */}
       {pickerOpen && (
         <div
           style={{
             position: 'absolute',
             right: 0,
-            top: -6,
-            transform: isMobile ? 'translateX(-8px)' : 'translateX(-2px)'
+            top: '50%',
+            transform: 'translateY(-50%) translateX(-2px)',
+            marginRight: 6,
+            zIndex: 10002
           }}
           onClick={(e) => e.stopPropagation()}
         >
