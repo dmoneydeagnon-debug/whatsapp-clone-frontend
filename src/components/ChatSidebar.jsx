@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import logo from '../../funchat_logo.png';
 
 const menuItem = {
@@ -7,9 +7,21 @@ const menuItem = {
   borderBottom: '1px solid #475569'
 };
 
-const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout, onProfileClick, onLogoClick }) => {
+const ChatSidebar = ({
+  chats,
+  selectedChat,
+  onSelectChat,
+  isMobile,
+  onLogout,
+  onProfileClick,
+  onLogoClick,
+  onSearchChange,
+  searchQuery,
+  searchResults
+}) => {
   const [showMenu, setShowMenu] = useState(false);
 
+  const list = searchQuery.trim().length > 0 ? (searchResults || []) : chats;
 
   return (
     <div
@@ -22,7 +34,15 @@ const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout, on
         overflow: 'hidden'
       }}
     >
-      <div style={{ padding: '20px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        style={{
+          padding: '20px',
+          borderBottom: '1px solid #334155',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
         <div
           onClick={onLogoClick}
           style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
@@ -40,7 +60,6 @@ const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout, on
               color: 'white',
               fontSize: '28px',
               cursor: 'pointer',
-              // increase tappable area and add spacing on mobile
               padding: isMobile ? '8px' : '4px',
               marginRight: isMobile ? '8px' : '0',
               borderRadius: '8px'
@@ -77,76 +96,95 @@ const ChatSidebar = ({ chats, selectedChat, onSelectChat, isMobile, onLogout, on
         </div>
       </div>
 
+      <div style={{ padding: '16px 20px 10px', borderBottom: '1px solid #334155' }}>
+        <input
+          value={searchQuery}
+          onChange={(e) => onSearchChange?.(e.target.value)}
+          placeholder="Search name, email or phone"
+          style={{
+            width: '100%',
+            padding: '10px 14px',
+            borderRadius: '9999px',
+            border: '1px solid #334155',
+            background: '#0f172a',
+            color: 'white',
+            outline: 'none'
+          }}
+        />
+      </div>
 
       <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
-        {chats.map((chat) => (
-
-          <div
-            key={chat._id}
-            onClick={() => onSelectChat(chat)}
-            style={{
-              padding: '16px',
-              marginBottom: '8px',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              background: selectedChat?._id === chat._id ? '#334155' : '#1e2937'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div
-                style={{
-                  width: '50px',
-                  height: '50px',
-                  borderRadius: '50%',
-                  overflow: 'hidden',
-                  background: '#334155',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                {chat.avatar ? (
-                  <img src={chat.avatar} alt={chat.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <span style={{ fontSize: '22px' }}>{chat.name?.[0]}</span>
-                )}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                  <div style={{ fontWeight: '500' }}>{chat.name}</div>
-                  {chat.unreadCount > 0 && (
-                    <div
-                      style={{
-                        background: '#2563eb',
-                        color: '#fff',
-                        borderRadius: '999px',
-                        padding: '2px 8px',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        minWidth: '24px',
-                        textAlign: 'center'
-                      }}
-                    >
-                      {chat.unreadCount}
-                    </div>
-                  )}
-                </div>
+        {list.length === 0 ? (
+          <div style={{ color: '#64748b', fontSize: 13, padding: '10px 0' }}>No results</div>
+        ) : (
+          list.map((chat) => (
+            <div
+              key={chat._id}
+              onClick={() => onSelectChat(chat)}
+              style={{
+                padding: '16px',
+                marginBottom: '8px',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                background: selectedChat?._id === chat._id ? '#334155' : '#1e2937'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div
                   style={{
-                    fontSize: '13px',
-                    color: '#94a3b8',
-                    whiteSpace: 'nowrap',
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
                     overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    fontWeight: chat.unreadCount > 0 ? 700 : 400
+                    background: '#334155',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                 >
-                  {chat.lastMessage ? chat.lastMessage : 'No messages yet'}
+                  {chat.avatar ? (
+                    <img src={chat.avatar} alt={chat.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ fontSize: '22px' }}>{chat.name?.[0]}</span>
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                    <div style={{ fontWeight: '500' }}>{chat.name}</div>
+                    {chat.unreadCount > 0 && (
+                      <div
+                        style={{
+                          background: '#2563eb',
+                          color: '#fff',
+                          borderRadius: '999px',
+                          padding: '2px 8px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          minWidth: '24px',
+                          textAlign: 'center'
+                        }}
+                      >
+                        {chat.unreadCount}
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '13px',
+                      color: '#94a3b8',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      fontWeight: chat.unreadCount > 0 ? 700 : 400
+                    }}
+                  >
+                    {chat.lastMessage ? chat.lastMessage : chat.email ? chat.email : 'No messages yet'}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

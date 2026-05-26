@@ -15,6 +15,10 @@ function App() {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+
+
   const [messageText, setMessageText] = useState('');
 
   // typing: chatId -> { isTyping: boolean, name: string }
@@ -510,6 +514,35 @@ function App() {
       });
   }, [token]);
 
+  useEffect(() => {
+    if (!token) return;
+
+    const q = searchQuery.trim();
+
+    // if query is empty, clear results
+    if (!q) {
+      setSearchResults([]);
+      return;
+    }
+
+    const t = window.setTimeout(async () => {
+      try {
+        const res = await axios.get(`${API_URL}/api/auth/users/search`, {
+          params: { q },
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        setSearchResults(Array.isArray(res.data) ? res.data : []);
+      } catch (err) {
+        console.error('SEARCH USERS ERROR:', err.response?.data || err.message || err);
+        setSearchResults([]);
+      }
+    }, 250);
+
+    return () => window.clearTimeout(t);
+  }, [searchQuery, token]);
+
+
   // Fetch missing chat.lastMessage once after initial chat load.
   // Previously this effect ran whenever `chats` changed, which caused flickering
   // (chat.lastMessage being overwritten back and forth while socket updates).
@@ -740,6 +773,9 @@ function App() {
         onLogout={logout}
         onLogoClick={() => setSelectedChat(null)}
         onProfileClick={openProfile}
+        searchQuery={searchQuery}
+        searchResults={searchResults}
+        onSearchChange={(v) => setSearchQuery(v)}
       />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

@@ -198,20 +198,21 @@ const MessageBubble = ({ msg, isMine, isMobile, getPlayableAudioUrl, onReact, on
               setDeleteOpen(true);
             }}
             style={{
-              width: 40,
               height: 40,
               borderRadius: 10,
               border: '1px solid #ef4444',
               background: '#111827',
               color: '#ef4444',
               cursor: 'pointer',
-              fontSize: 16,
-              fontWeight: 700
+              fontSize: 14,
+              fontWeight: 700,
+              padding: '0 14px'
             }}
             title="Delete"
           >
-            🗑️
+            Delete
           </button>
+
 
           <button
             onClick={closePicker}
