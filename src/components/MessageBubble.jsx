@@ -218,26 +218,16 @@ const MessageBubble = ({
         </div>
       )}
 
-      {/* Delete icon at top-right of the overlay */}
+      {/* Trash icon aligned to the right side of the message bubble header area */}
       {pickerOpen && (
         <div
           style={{
-            position: 'fixed',
-            zIndex: 10001,
-            top: isMobile ? 90 : 70,
-            right: 22,
-            width: 46,
-            height: 46,
-            borderRadius: 12,
-            background: '#111827',
-            border: '1px solid #ef4444',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.35)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
+            position: 'absolute',
+            right: 0,
+            top: -6,
+            transform: isMobile ? 'translateX(-8px)' : 'translateX(-2px)'
           }}
           onClick={(e) => e.stopPropagation()}
-          title="Delete"
         >
           <button
             onClick={() => {
@@ -245,13 +235,19 @@ const MessageBubble = ({
               setDeleteOpen(true);
             }}
             style={{
-              border: 'none',
-              background: 'transparent',
+              border: '1px solid #ef4444',
+              background: '#111827',
               color: '#ef4444',
               cursor: 'pointer',
-              fontSize: 20,
-              lineHeight: 1
+              width: 38,
+              height: 38,
+              borderRadius: 12,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.35)'
             }}
+            title="Delete"
           >
             🗑️
           </button>
