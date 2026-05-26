@@ -218,23 +218,26 @@ const MessageBubble = ({
         </div>
       )}
 
-      {/* Delete option UNDER reactions (own space) */}
+      {/* Delete icon at top-right of the overlay */}
       {pickerOpen && (
         <div
           style={{
             position: 'fixed',
-            zIndex: 10000,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            bottom: isMobile ? 58 : 118,
-            background: '#0b1220',
-            border: '1px solid #1f2937',
+            zIndex: 10001,
+            top: isMobile ? 90 : 70,
+            right: 22,
+            width: 46,
+            height: 46,
             borderRadius: 12,
-            padding: '10px 12px',
-            width: isMobile ? 'unset' : 220,
-            boxShadow: '0 10px 30px rgba(0,0,0,0.35)'
+            background: '#111827',
+            border: '1px solid #ef4444',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}
           onClick={(e) => e.stopPropagation()}
+          title="Delete"
         >
           <button
             onClick={() => {
@@ -246,12 +249,11 @@ const MessageBubble = ({
               background: 'transparent',
               color: '#ef4444',
               cursor: 'pointer',
-              fontWeight: 800,
-              width: '100%'
+              fontSize: 20,
+              lineHeight: 1
             }}
-            title="Delete"
           >
-            Delete
+            🗑️
           </button>
         </div>
       )}
