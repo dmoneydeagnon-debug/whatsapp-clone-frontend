@@ -97,20 +97,32 @@ const ChatSidebar = ({
       </div>
 
       <div style={{ padding: '16px 20px 10px', borderBottom: '1px solid #334155' }}>
-        <input
-          value={searchQuery}
-          onChange={(e) => onSearchChange?.(e.target.value)}
-          placeholder="Search name, email or phone"
+        <div
           style={{
-            width: '100%',
-            padding: '10px 14px',
-            borderRadius: '9999px',
-            border: '1px solid #334155',
-            background: '#0f172a',
-            color: 'white',
-            outline: 'none'
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            maxWidth: '92%'
           }}
-        />
+        >
+          <span style={{ color: '#94a3b8', display: 'flex', alignItems: 'center' }} title="Search">
+            🔍
+          </span>
+          <input
+            value={searchQuery}
+            onChange={(e) => onSearchChange?.(e.target.value)}
+            placeholder="Search...."
+            style={{
+              width: '200px',
+              padding: '10px 12px',
+              borderRadius: '9999px',
+              border: '1px solid #334155',
+              background: '#0f172a',
+              color: 'white',
+              outline: 'none'
+            }}
+          />
+        </div>
       </div>
 
       <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>

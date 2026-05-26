@@ -3,7 +3,14 @@ import CompactAudioPlayer from './CompactAudioPlayer';
 
 const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
-const MessageBubble = ({ msg, isMine, isMobile, getPlayableAudioUrl, onReact, onDeleteMessage }) => {
+const MessageBubble = ({
+  msg,
+  isMine,
+  isMobile,
+  getPlayableAudioUrl,
+  onReact,
+  onDeleteMessage
+}) => {
   // Prevent white-screen crashes on reload if a message is temporarily undefined
   if (!msg) return null;
 
@@ -151,6 +158,7 @@ const MessageBubble = ({ msg, isMine, isMobile, getPlayableAudioUrl, onReact, on
         </div>
       )}
 
+      {/* Reaction picker */}
       {pickerOpen && (
         <div
           style={{
@@ -191,29 +199,6 @@ const MessageBubble = ({ msg, isMine, isMobile, getPlayableAudioUrl, onReact, on
               {emoji}
             </button>
           ))}
-
-          <button
-            onClick={() => {
-              closePicker();
-              setDeleteOpen(true);
-            }}
-            style={{
-              height: 40,
-              borderRadius: 10,
-              border: '1px solid #ef4444',
-              background: '#111827',
-              color: '#ef4444',
-              cursor: 'pointer',
-              fontSize: 14,
-              fontWeight: 700,
-              padding: '0 14px'
-            }}
-            title="Delete"
-          >
-            Delete
-          </button>
-
-
           <button
             onClick={closePicker}
             style={{
@@ -233,6 +218,45 @@ const MessageBubble = ({ msg, isMine, isMobile, getPlayableAudioUrl, onReact, on
         </div>
       )}
 
+      {/* Delete option UNDER reactions (own space) */}
+      {pickerOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            zIndex: 10000,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            bottom: isMobile ? 58 : 118,
+            background: '#0b1220',
+            border: '1px solid #1f2937',
+            borderRadius: 12,
+            padding: '10px 12px',
+            width: isMobile ? 'unset' : 220,
+            boxShadow: '0 10px 30px rgba(0,0,0,0.35)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => {
+              closePicker();
+              setDeleteOpen(true);
+            }}
+            style={{
+              border: 'none',
+              background: 'transparent',
+              color: '#ef4444',
+              cursor: 'pointer',
+              fontWeight: 800,
+              width: '100%'
+            }}
+            title="Delete"
+          >
+            Delete
+          </button>
+        </div>
+      )}
+
+      {/* Delete modal */}
       {deleteOpen && (
         <div
           style={{
