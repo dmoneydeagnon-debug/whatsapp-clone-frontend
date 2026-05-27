@@ -19,18 +19,54 @@ export default function ForwardModal({
 
   useEffect(() => {
     if (!open) return;
-    setQuery('');
-    setResults([]);
-    setSelected([]);
+    // Avoid calling setState directly; schedule in next microtask.
+    queueMicrotask(() => {
+      setQuery('');
+      setResults([]);
+      setSelected([]);
+    });
   }, [open]);
 
   useEffect(() => {
     if (!open) return;
+
     const q = query.trim();
 
+    // If query is empty, load the full user list so recipients are visible immediately.
     if (!q) {
-      setResults([]);
-      return;
+      let cancelled = false;
+      setLoading(true);
+      axios
+        .get(`${API_URL}/api/auth/users`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then((res) => {
+          if (cancelled) return;
+          const filtered = Array.isArray(res.data)
+            ? res.data
+                .filter((u) => (excludeUserId ? u._id?.toString?.() !== excludeUserId?.toString?.() : true))
+                .map((u) => ({
+                  _id: u._id || u.id,
+                  name: u.name,
+                  email: u.email,
+                  phone: u.phone,
+                  avatar: u.avatar,
+                  isOnline: u.isOnline,
+                  lastSeen: u.lastSeen
+                }))
+            : [];
+          setResults(filtered);
+        })
+        .catch(() => {
+          if (!cancelled) setResults([]);
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+
+      return () => {
+        cancelled = true;
+      };
     }
 
     let cancelled = false;
