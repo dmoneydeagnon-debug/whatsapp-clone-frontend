@@ -182,6 +182,8 @@ export default function ForwardModal({
 
         <div style={{ marginTop: 10, maxHeight: isMobile ? '50vh' : 340, overflowY: 'auto' }}>
           {loading && <div style={{ color: '#94a3b8', fontSize: 13, padding: 10 }}>Loading...</div>}
+
+          {/* If query is empty, show all results already loaded in `results` */}
           {!loading && query.trim() && results.length === 0 && (
             <div style={{ color: '#94a3b8', fontSize: 13, padding: 10 }}>No results</div>
           )}
