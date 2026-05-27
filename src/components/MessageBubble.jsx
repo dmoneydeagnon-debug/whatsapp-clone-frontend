@@ -224,7 +224,7 @@ const MessageBubble = ({
           style={{
             position: 'absolute',
             right: 0,
-            top: '50%',
+            top: '5%',
             transform: 'translateY(-50%) translateX(-2px)',
             marginRight: 6,
             zIndex: 10002
