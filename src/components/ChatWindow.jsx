@@ -97,6 +97,10 @@ const ChatWindow = ({
                 getPlayableAudioUrl={getPlayableAudioUrl}
                 onReact={onReact}
                 onDeleteMessage={onDeleteMessage}
+                onForward={(originalMsg, recipientIds) => {
+                  // forward flow is owned by App via onForwardMessage prop
+                  // originalMsg is forwarded as-is (text/media).
+                }}
               />
 
               <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px', justifyContent: msg.sender?.toString() === user._id?.toString() ? 'flex-end' : 'flex-start' }}>

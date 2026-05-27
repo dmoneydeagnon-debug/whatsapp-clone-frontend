@@ -809,6 +809,21 @@ function App() {
               if (!socketRef.current || !selectedChat?._id || !user?._id) return;
               socketRef.current.emit('deleteMessage', { messageId, scope });
             }}
+            onForward={(originalMsg, recipientIds) => {
+              if (!socketRef.current) return;
+              socketRef.current.emit('forwardMessage', {
+                message: {
+                  _id: originalMsg?._id,
+                  sender: originalMsg?.sender,
+                  receiver: originalMsg?.receiver,
+                  groupId: originalMsg?.groupId,
+                  text: originalMsg?.text,
+                  mediaUrl: originalMsg?.mediaUrl,
+                  mediaType: originalMsg?.mediaType
+                },
+                recipientIds
+              });
+            }}
           />
         ) : (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>

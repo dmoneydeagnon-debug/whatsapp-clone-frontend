@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import CompactAudioPlayer from './CompactAudioPlayer';
+import ForwardModal from './ForwardModal';
 
 const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
@@ -9,19 +10,23 @@ const MessageBubble = ({
   isMobile,
   getPlayableAudioUrl,
   onReact,
-  onDeleteMessage
+  onDeleteMessage,
+  token,
+  onForward
 }) => {
-  // Prevent white-screen crashes on reload if a message is temporarily undefined
-  if (!msg) return null;
-
   const [pickerOpen, setPickerOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [forwardOpen, setForwardOpen] = useState(false);
+
   const rootRef = useRef(null);
   const longPressTimerRef = useRef(null);
 
+  const safeMsg = msg || {};
+
   const groupedReactions = useMemo(() => {
-    const reactions = Array.isArray(msg.reactions) ? msg.reactions : [];
+    const reactions = Array.isArray(safeMsg.reactions) ? safeMsg.reactions : [];
     const counts = new Map();
+
 
     for (const r of reactions) {
       if (!r?.emoji) continue;
@@ -40,11 +45,16 @@ const MessageBubble = ({
     setDeleteOpen(false);
   };
 
-  const closePicker = () => {
-    setPickerOpen(false);
+  const closePicker = () => setPickerOpen(false);
+  const closeDelete = () => setDeleteOpen(false);
+
+  const openForward = () => {
+    closePicker();
+    setDeleteOpen(false);
+    setForwardOpen(true);
   };
 
-  const closeDelete = () => setDeleteOpen(false);
+  const closeForward = () => setForwardOpen(false);
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -63,7 +73,6 @@ const MessageBubble = ({
   }, [pickerOpen]);
 
   const handleTouchStart = (e) => {
-    // long-press: open picker
     longPressTimerRef.current = window.setTimeout(() => {
       openPicker(e);
     }, 450);
@@ -112,7 +121,12 @@ const MessageBubble = ({
             )}
             {msg.mediaType === 'file' && (
               <div>
-                <a href={msg.mediaUrl} target="_blank" rel="noreferrer" style={{ color: '#a5f3fc', wordBreak: 'break-all' }}>
+                <a
+                  href={msg.mediaUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: '#a5f3fc', wordBreak: 'break-all' }}
+                >
                   Download file
                 </a>
               </div>
@@ -158,7 +172,6 @@ const MessageBubble = ({
         </div>
       )}
 
-      {/* Reaction picker */}
       {pickerOpen && (
         <div
           style={{
@@ -218,13 +231,12 @@ const MessageBubble = ({
         </div>
       )}
 
-      {/* Trash icon near the middle of the reaction picker */}
       {pickerOpen && (
         <div
           style={{
             position: 'absolute',
             right: 0,
-            top: '5%',
+            top: '7%',
             transform: 'translateY(-50%) translateX(-2px)',
             marginRight: 6,
             zIndex: 10002
@@ -253,10 +265,31 @@ const MessageBubble = ({
           >
             🗑️
           </button>
+          <div style={{ height: 6 }} />
+          <button
+            onClick={() => {
+              openForward();
+            }}
+            style={{
+              border: '1px solid #60a5fa',
+              background: '#111827',
+              color: '#60a5fa',
+              cursor: 'pointer',
+              width: 38,
+              height: 38,
+              borderRadius: 12,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.35)'
+            }}
+            title="Forward"
+          >
+            ↪️
+          </button>
         </div>
       )}
 
-      {/* Delete modal */}
       {deleteOpen && (
         <div
           style={{
@@ -331,6 +364,17 @@ const MessageBubble = ({
           </div>
         </div>
       )}
+
+      <ForwardModal
+        open={forwardOpen}
+        onClose={closeForward}
+        token={token}
+        excludeUserId={msg.sender}
+        onForward={(recipientIds) => {
+          onForward?.(msg, recipientIds);
+          closeForward();
+        }}
+      />
     </div>
   );
 };
