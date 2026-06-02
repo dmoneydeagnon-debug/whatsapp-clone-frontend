@@ -34,7 +34,8 @@ const MessageBubble = ({
     return Array.from(counts.entries())
       .map(([emoji, count]) => ({ emoji, count }))
       .sort((a, b) => b.count - a.count);
-  }, [msg.reactions]);
+  }, [safeMsg.reactions]);
+
 
   const openPicker = (e) => {
     e?.preventDefault?.();

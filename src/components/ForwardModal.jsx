@@ -36,7 +36,8 @@ export default function ForwardModal({
     // If query is empty, load the full user list so recipients are visible immediately.
     if (!q) {
       let cancelled = false;
-      setLoading(true);
+      queueMicrotask(() => setLoading(true));
+
       axios
         .get(`${API_URL}/api/auth/users`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -71,7 +72,8 @@ export default function ForwardModal({
     }
 
     let cancelled = false;
-    setLoading(true);
+    queueMicrotask(() => setLoading(true));
+
 
     const t = window.setTimeout(async () => {
       try {

@@ -32,8 +32,15 @@ const ChatWindow = ({
   }, [currentMessages, selectedChat]);
 
   const getPlayableAudioUrl = (url) => {
-    if (!url || !url.includes('/upload/')) return url;
+    if (!url) return url;
+
+    // Backend already uploads voice as mp3 via Cloudinary (see backend/routes/upload.js).
+    // So if the URL is already playable, just return it.
+    // Fallback: if it isn't in the expected Cloudinary /upload/ format, don't rewrite.
+    if (!url.includes('/upload/')) return url;
     if (url.includes('/upload/f_')) return url;
+
+    // If for some reason the stored URL isn't mp3-transcoded, keep existing behavior.
     return url.replace('/upload/', '/upload/f_mp3/');
   };
 

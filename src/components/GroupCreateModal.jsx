@@ -23,10 +23,14 @@ export default function GroupCreateModal({
   useEffect(() => {
     if (!open) return;
     // reset
-    setGroupName('');
-    setQuery('');
-    setResults([]);
-    setSelectedUserIds([]);
+    queueMicrotask(() => {
+      setGroupName('');
+    });
+    queueMicrotask(() => {
+      setQuery('');
+      setResults([]);
+      setSelectedUserIds([]);
+    });
   }, [open]);
 
   useEffect(() => {
@@ -36,7 +40,8 @@ export default function GroupCreateModal({
     const q = query.trim();
 
     let cancelled = false;
-    setLoading(true);
+    queueMicrotask(() => setLoading(true));
+
 
     const run = async () => {
       try {

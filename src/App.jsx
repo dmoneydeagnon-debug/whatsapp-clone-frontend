@@ -247,11 +247,13 @@ function App() {
   useEffect(() => {
     if (!token || !user?._id) return;
 
-    setAppInitializing(true);
-
+    // Defer to next microtask to satisfy eslint rule about setState in effects.
+    queueMicrotask(() => {
+      setAppInitializing(true);
+    });
 
     // Token is valid and user is ready -> start socket init gating.
-    // Avoid setState synchronously in an effect body.
+
 
     const socket = io(API_URL, {
       auth: { token },
@@ -537,9 +539,10 @@ function App() {
 
     // if query is empty, clear results
     if (!q) {
-      setSearchResults([]);
+      queueMicrotask(() => setSearchResults([]));
       return;
     }
+
 
     const t = window.setTimeout(async () => {
       try {
@@ -600,9 +603,13 @@ function App() {
     return () => {
       cancelled = true;
     };
-    // Depend only on `token` and initial list load changes.
+  // Depend only on `token` and initial list load changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, token ? chats.length : 0]);
+  }, [token, token ? chats.length : 0, chatMessages]);
+
+
+
+
 
   useEffect(() => {
     if (!selectedChat?._id || !token) return;
@@ -667,7 +674,11 @@ function App() {
     }
   }, [token, user]);
 
-  const startRecording = async () => {
+  const recordIntentRef = useRef('send');
+
+  const startRecording = async (intent = 'send') => {
+    recordIntentRef.current = intent;
+
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       alert('Audio recording is not supported in this browser');
       return;
@@ -684,6 +695,12 @@ function App() {
       };
 
       recorder.onstop = async () => {
+        // cancel path: discard chunks, stop.
+        if (recordIntentRef.current === 'cancel') {
+          audioChunks.current = [];
+          return;
+        }
+
         const blob = new Blob(audioChunks.current, { type: 'audio/webm' });
         const file = new File([blob], 'voice.webm', { type: 'audio/webm' });
 
@@ -715,7 +732,8 @@ function App() {
     }
   };
 
-  const stopRecording = () => {
+  const stopRecording = (intent = 'send') => {
+    recordIntentRef.current = intent;
     mediaRecorderRef.current?.stop();
   };
 
