@@ -78,11 +78,14 @@ function App() {
     const result = await uploadFile(file);
     if (!result?.url) return;
 
+    // normalize mediaType for voice so backend + UI are consistent
+    const mediaType = result.type === 'voice' || file.type?.startsWith('audio/') ? 'voice' : result.type;
+
     socketRef.current.emit('sendMessage', {
       receiver: selectedChat._id,
       text: '',
       mediaUrl: result.url,
-      mediaType: result.type
+      mediaType
     });
   };
 
@@ -503,16 +506,29 @@ function App() {
   useEffect(() => {
     if (!token) return;
 
-    // Fetch 1:1 chats
-    axios
-      .get(`${API_URL}/api/auth/users`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then((res) => setChats(res.data))
-      .catch((err) => {
+    const fetchAllChats = async () => {
+      try {
+        const [directRes, groupRes] = await Promise.all([
+          axios.get(`${API_URL}/api/auth/users`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`${API_URL}/api/groups/my`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }).catch(() => ({ data: [] }))
+        ]);
+
+        // directRes.data shape is already what ChatSidebar expects.
+        // groupRes.data shape is created in backend/routes/groups.js (name, lastMessage, unreadCount).
+        setChats([...(directRes.data || []), ...(groupRes.data || [])]);
+      } catch (err) {
         if (err.response?.status === 401) logout();
-      });
+        else setChats([]);
+      }
+    };
+
+    fetchAllChats();
   }, [token]);
+
 
   useEffect(() => {
     if (!token) return;
@@ -809,21 +825,7 @@ function App() {
               if (!socketRef.current || !selectedChat?._id || !user?._id) return;
               socketRef.current.emit('deleteMessage', { messageId, scope });
             }}
-            onForward={(originalMsg, recipientIds) => {
-              if (!socketRef.current) return;
-              socketRef.current.emit('forwardMessage', {
-                message: {
-                  _id: originalMsg?._id,
-                  sender: originalMsg?.sender,
-                  receiver: originalMsg?.receiver,
-                  groupId: originalMsg?.groupId,
-                  text: originalMsg?.text,
-                  mediaUrl: originalMsg?.mediaUrl,
-                  mediaType: originalMsg?.mediaType
-                },
-                recipientIds
-              });
-            }}
+
           />
         ) : (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>

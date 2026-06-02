@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import CompactAudioPlayer from './CompactAudioPlayer';
-import ForwardModal from './ForwardModal';
 
 const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
@@ -10,13 +9,12 @@ const MessageBubble = ({
   isMobile,
   getPlayableAudioUrl,
   onReact,
-  onDeleteMessage,
-  token,
-  onForward
+  onDeleteMessage
 }) => {
+
   const [pickerOpen, setPickerOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [forwardOpen, setForwardOpen] = useState(false);
+
 
   const rootRef = useRef(null);
   const longPressTimerRef = useRef(null);
@@ -48,13 +46,7 @@ const MessageBubble = ({
   const closePicker = () => setPickerOpen(false);
   const closeDelete = () => setDeleteOpen(false);
 
-  const openForward = () => {
-    closePicker();
-    setDeleteOpen(false);
-    setForwardOpen(true);
-  };
 
-  const closeForward = () => setForwardOpen(false);
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -265,30 +257,10 @@ const MessageBubble = ({
           >
             🗑️
           </button>
-          <div style={{ height: 6 }} />
-          <button
-            onClick={() => {
-              openForward();
-            }}
-            style={{
-              border: '1px solid #60a5fa',
-              background: '#111827',
-              color: '#60a5fa',
-              cursor: 'pointer',
-              width: 38,
-              height: 38,
-              borderRadius: 12,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.35)'
-            }}
-            title="Forward"
-          >
-            ↪️
-          </button>
+          
         </div>
       )}
+
 
       {deleteOpen && (
         <div
@@ -365,17 +337,8 @@ const MessageBubble = ({
         </div>
       )}
 
-      <ForwardModal
-        open={forwardOpen}
-        onClose={closeForward}
-        token={token}
-        excludeUserId={msg.sender}
-        onForward={(recipientIds) => {
-          onForward?.(msg, recipientIds);
-          closeForward();
-        }}
-      />
     </div>
+
   );
 };
 

@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react';
+import axios from 'axios';
+import GroupCreateModal from './GroupCreateModal';
 import logo from '../../funchat_logo.png';
+
 
 const menuItem = {
   padding: '14px 18px',
@@ -20,8 +23,12 @@ const ChatSidebar = ({
   searchResults
 }) => {
   const [showMenu, setShowMenu] = useState(false);
+  const [createGroupOpen, setCreateGroupOpen] = useState(false);
+  const [groupName, setGroupName] = useState('');
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
 
   const list = searchQuery.trim().length > 0 ? (searchResults || []) : chats;
+
 
   return (
     <div
@@ -125,6 +132,29 @@ const ChatSidebar = ({
         </div>
       </div>
 
+      <div style={{ padding: '20px 20px 10px', borderTop: '1px solid #334155' }}>
+        <button
+          onClick={() => {
+            setCreateGroupOpen(true);
+            setGroupName('');
+            setSelectedUserIds([]);
+          }}
+          style={{
+            width: '100%',
+            padding: '10px 12px',
+            borderRadius: 12,
+            border: '1px solid #334155',
+            background: '#0f172a',
+            color: '#e2e8f0',
+            cursor: 'pointer',
+            fontWeight: 800
+          }}
+          title="Create group"
+        >
+          + Create Group
+        </button>
+      </div>
+
       <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
         {list.length === 0 ? (
           <div style={{ color: '#64748b', fontSize: 13, padding: '10px 0' }}>No results</div>
@@ -198,6 +228,16 @@ const ChatSidebar = ({
           ))
         )}
       </div>
+
+      <GroupCreateModal
+        open={createGroupOpen}
+        onClose={() => setCreateGroupOpen(false)}
+        token={localStorage.getItem('token')}
+        onCreated={() => {
+          // refresh sidebar data by reloading chats via App's socket init later
+          window.location.reload();
+        }}
+      />
     </div>
   );
 };
