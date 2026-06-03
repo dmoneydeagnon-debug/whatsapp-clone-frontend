@@ -46,7 +46,7 @@ const ChatWindow = ({
 
   return (
     <>
-      <div style={{ padding: '20px', borderBottom: '1px solid #334155', background: '#1e2937', display: 'flex', alignItems: 'center' }}>
+      <div style={{ padding: isMobile ? '14px 16px' : '20px', borderBottom: '1px solid #334155', background: '#1e2937', display: 'flex', alignItems: 'center' }}>
         {isMobile && (
           <button
             onClick={onBack}
@@ -88,7 +88,7 @@ const ChatWindow = ({
         </div>
       </div>
 
-      <div style={{ flex: 1, padding: '30px', overflowY: 'auto', background: '#0f172a' }}>
+      <div style={{ flex: 1, padding: isMobile ? '14px' : '30px', overflowY: 'auto', background: '#0f172a' }}>
         {currentMessages.length === 0 ? (
           <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
             No messages yet. Say hello!

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
+import { API_URL } from '../utils/api';
 
 // Simple forward UI used from MessageBubble. Supports selecting up to 5 contacts.
 // Desktop: bottom-sheet style modal. Mobile: nearly full screen.
-const API_URL = 'https://whatsapp-clone-backend-4cpt.onrender.com';
 
 export default function ForwardModal({
   open,

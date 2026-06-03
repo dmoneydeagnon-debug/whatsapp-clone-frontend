@@ -55,7 +55,7 @@ const CompactAudioPlayer = ({ src, isMobile }) => {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: isMobile ? 220 : 360 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: isMobile ? '100%' : 360 }}>
       <button
         onClick={toggle}
         aria-label={playing ? 'Pause' : 'Play'}

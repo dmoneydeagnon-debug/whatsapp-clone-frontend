@@ -6,8 +6,7 @@ import ChatSidebar from './components/ChatSidebar';
 import ChatWindow from './components/ChatWindow';
 import ProfileModal from './components/ProfileModal';
 import Loader3D from './components/Loader3D';
-
-const API_URL = "https://whatsapp-clone-backend-4cpt.onrender.com";
+import { API_URL } from './utils/api';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -47,6 +46,7 @@ function App() {
   const socketRef = useRef(null);
   const chatsRef = useRef([]);
   const selectedChatRef = useRef(null);
+  const chatMessagesRef = useRef({});
   const mediaRecorderRef = useRef(null);
   const audioChunks = useRef([]);
 
@@ -243,6 +243,10 @@ function App() {
   useEffect(() => {
     selectedChatRef.current = selectedChat;
   }, [selectedChat]);
+
+  useEffect(() => {
+    chatMessagesRef.current = chatMessages;
+  }, [chatMessages]);
 
   useEffect(() => {
     if (!token || !user?._id) return;
@@ -463,7 +467,7 @@ function App() {
         setChats((prev) =>
           prev.map((chat) => {
             if ((chat._id?.toString?.() || chat._id) !== (currentChatId?.toString?.() || currentChatId)) return chat;
-            const list = (chatMessages[currentChatId] || []).filter((m) => m?._id?.toString?.() !== messageId?.toString?.());
+            const list = (chatMessagesRef.current[currentChatId] || []).filter((m) => m?._id?.toString?.() !== messageId?.toString?.());
             const lastMsg = list.length ? list[list.length - 1] : null;
             return {
               ...chat,
@@ -603,9 +607,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  // Depend only on `token` and initial list load changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, token ? chats.length : 0, chatMessages]);
+  }, [token, chats]);
 
 
 

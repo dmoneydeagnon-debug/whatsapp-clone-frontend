@@ -40,7 +40,7 @@ const ChatSidebar = ({
   return (
     <div
       style={{
-        width: isMobile && selectedChat ? '0px' : '380px',
+        width: isMobile ? (selectedChat ? '0px' : '100%') : '380px',
         borderRight: isMobile && selectedChat ? 'none' : '1px solid #334155',
         background: '#1e2937',
         display: isMobile && selectedChat ? 'none' : 'flex',
@@ -116,7 +116,7 @@ const ChatSidebar = ({
             display: 'flex',
             alignItems: 'center',
             gap: 10,
-            maxWidth: '92%'
+            width: '100%'
           }}
         >
           <span style={{ color: '#94a3b8', display: 'flex', alignItems: 'center' }} title="Search">
@@ -127,7 +127,7 @@ const ChatSidebar = ({
             onChange={(e) => onSearchChange?.(e.target.value)}
             placeholder="Search...."
             style={{
-              width: '200px',
+              width: '100%',
               padding: '10px 12px',
               borderRadius: '9999px',
               border: '1px solid #334155',

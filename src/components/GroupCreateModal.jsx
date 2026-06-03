@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
-
-const API_URL = 'https://whatsapp-clone-backend-4cpt.onrender.com';
+import { API_URL } from '../utils/api';
 
 export default function GroupCreateModal({
   open,
