@@ -48,6 +48,7 @@ function App() {
   const selectedChatRef = useRef(null);
   const chatMessagesRef = useRef({});
   const mediaRecorderRef = useRef(null);
+  const recordStreamRef = useRef(null);
   const audioChunks = useRef([]);
 
   const uploadFile = async (file) => {
@@ -683,36 +684,43 @@ function App() {
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       alert('Audio recording is not supported in this browser');
-      return;
+      return false;
     }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
       mediaRecorderRef.current = recorder;
+      recordStreamRef.current = stream;
       audioChunks.current = [];
 
       recorder.ondataavailable = (e) => {
-        audioChunks.current.push(e.data);
+        if (e.data && e.data.size > 0) {
+          audioChunks.current.push(e.data);
+        }
       };
 
       recorder.onstop = async () => {
-        // cancel path: discard chunks, stop.
+        const stream = recordStreamRef.current;
+        recordStreamRef.current = null;
+        stream?.getTracks?.().forEach((track) => track.stop());
+
         if (recordIntentRef.current === 'cancel') {
           audioChunks.current = [];
           return;
         }
 
+        if (!selectedChat?._id) {
+          alert('Please select a chat before sending a voice message');
+          audioChunks.current = [];
+          return;
+        }
+
         const blob = new Blob(audioChunks.current, { type: 'audio/webm' });
-        const file = new File([blob], 'voice.webm', { type: 'audio/webm' });
+        const file = new File([blob], `voice_${Date.now()}.webm`, { type: 'audio/webm' });
 
         const result = await uploadFile(file);
         if (!result?.url) return;
-
-        if (!selectedChat?._id) {
-          alert('Please select a chat before sending a voice message');
-          return;
-        }
 
         if (!socketRef.current) {
           console.error('Socket not connected');
@@ -728,15 +736,19 @@ function App() {
       };
 
       recorder.start();
+      return true;
     } catch (err) {
       console.error('Failed to start audio recording', err);
       alert('Could not access microphone');
+      return false;
     }
   };
 
   const stopRecording = (intent = 'send') => {
     recordIntentRef.current = intent;
-    mediaRecorderRef.current?.stop();
+    if (!mediaRecorderRef.current) return;
+    if (mediaRecorderRef.current.state === 'inactive') return;
+    mediaRecorderRef.current.stop();
   };
 
   const emitTyping = (chatId) => {

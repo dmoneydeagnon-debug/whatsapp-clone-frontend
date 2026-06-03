@@ -24,6 +24,8 @@ const MessageInput = ({
     startY: 0,
     startX: 0
   });
+  const lockThreshold = 60;
+  const cancelThreshold = 100;
 
   const [cancelArmed, setCancelArmed] = useState(false);
 
@@ -46,11 +48,9 @@ const MessageInput = ({
   };
 
   const beginRecord = async (intent = 'send') => {
-    if (!selectedChat?._id) return;
-    if (isRecording) return;
+    if (!selectedChat?._id || isRecording) return;
 
     setCancelArmed(false);
-    setIsRecording(true);
     setIsLocked(false);
     setRecordMs(0);
 
@@ -59,8 +59,10 @@ const MessageInput = ({
       startX: 0
     };
 
-    await startRecording(intent);
+    const started = await startRecording(intent);
+    if (!started) return;
 
+    setIsRecording(true);
     clearTimer();
     timerRef.current = window.setInterval(() => {
       setRecordMs((p) => p + 200);
@@ -86,7 +88,6 @@ const MessageInput = ({
   };
 
   const onSendButtonPress = () => {
-    // If currently recording (unlocked), treat send as cancel.
     if (isRecording && !isLocked) {
       cancelRecord();
       return;
@@ -94,63 +95,75 @@ const MessageInput = ({
     sendMessage();
   };
 
-  const lockCheck = (clientY) => {
+  const updateGestureState = (clientX, clientY) => {
     if (!isRecording) return;
 
     const dy = gestureRef.current.startY - clientY;
-    // WhatsApp-like: drag up to lock
-    if (!isLocked && dy > 60) {
+    const dx = clientX - gestureRef.current.startX;
+
+    if (!isLocked && dy > lockThreshold) {
       setIsLocked(true);
-      setCancelArmed(true);
+      setCancelArmed(false);
+      return;
+    }
+
+    if (!isLocked) {
+      setCancelArmed(dx < -cancelThreshold);
     }
   };
 
   const attachGestureListeners = (pointerId) => {
+    const cleanup = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onCancel);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onCancel);
+    };
+
+    const finish = () => {
+      cleanup();
+      if (!isRecording || isLocked) return;
+      if (cancelArmed) cancelRecord();
+      else endRecord();
+    };
+
     const onMove = (ev) => {
       if (!isRecording) return;
       if (pointerId != null && ev.pointerId != null && ev.pointerId !== pointerId) return;
-      lockCheck(ev.clientY);
+      updateGestureState(ev.clientX, ev.clientY);
     };
 
     const onUp = () => {
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', onTouchEnd);
+      finish();
+    };
 
-      // If unlocked: releasing finger stops & sends.
-      // If locked: do nothing (user must press trash / stop)
-      if (isRecording && !isLocked) {
-        endRecord();
-      }
+    const onCancel = () => {
+      cleanup();
+      if (isRecording && !isLocked) cancelRecord();
     };
 
     const onTouchMove = (ev) => {
       if (!isRecording) return;
       const t = ev.touches?.[0];
       if (!t) return;
-      lockCheck(t.clientY);
+      updateGestureState(t.clientX, t.clientY);
     };
 
     const onTouchEnd = () => {
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', onTouchEnd);
-
-      if (isRecording && !isLocked) {
-        endRecord();
-      }
+      finish();
     };
 
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onCancel);
     window.addEventListener('touchmove', onTouchMove, { passive: true });
     window.addEventListener('touchend', onTouchEnd);
+    window.addEventListener('touchcancel', onCancel);
   };
 
   const handleMicPointerDown = async (ev) => {
-    // prevent text selection / focus issues
     ev?.preventDefault?.();
 
     const clientY = ev?.clientY ?? ev?.touches?.[0]?.clientY;
@@ -158,14 +171,13 @@ const MessageInput = ({
     gestureRef.current.startY = clientY ?? 0;
     gestureRef.current.startX = clientX ?? 0;
 
-    // start recording
-    await beginRecord('send');
+    const started = await beginRecord('send');
+    if (!started) return;
 
-    // attach gesture listeners
     if ('pointerId' in ev) {
+      ev?.target?.setPointerCapture?.(ev.pointerId);
       attachGestureListeners(ev.pointerId);
     } else {
-      // touch fallback
       attachGestureListeners(null);
     }
   };
@@ -281,6 +293,7 @@ const MessageInput = ({
             color: 'white',
             cursor: 'pointer',
             userSelect: 'none',
+            touchAction: 'none',
             background: isRecording ? '#111827' : 'transparent',
             border: isRecording ? '1px solid #334155' : 'none'
           }}
@@ -312,8 +325,8 @@ const MessageInput = ({
           )}
         </div>
 
-        {/* Recording overlay (only when locked) */}
-        {isRecording && isLocked && (
+        {/* Recording overlay */}
+        {isRecording && (
           <div
             style={{
               position: 'absolute',
@@ -333,89 +346,98 @@ const MessageInput = ({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
               <div style={{ color: '#e2e8f0', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ width: 10, height: 10, borderRadius: 999, background: '#ef4444', boxShadow: '0 0 0 4px rgba(239,68,68,0.15)' }} />
-                Recording…
+                {isLocked ? 'Recording…' : cancelArmed ? 'Release to cancel' : 'Recording…'}
               </div>
               <div style={{ color: '#94a3b8', fontSize: 12 }}>{recordTimeLabel}</div>
             </div>
 
-            {/* Fake “wave line” */}
-            <div
-              style={{
-                marginTop: 10,
-                height: 34,
-                borderRadius: 10,
-                background: 'linear-gradient(90deg, rgba(16,185,129,0.18), rgba(16,185,129,0.08))',
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0 10px',
-                overflow: 'hidden'
-              }}
-            >
-              <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end' }}>
-                {Array.from({ length: 28 }).map((_, i) => {
-                  const h = 6 + (((i * 13 + recordMs / 200) % 17) / 17) * 22;
-                  return (
-                    <div
-                      key={i}
-                      style={{
-                        width: 4,
-                        height: h,
-                        borderRadius: 3,
-                        background: '#10b981',
-                        opacity: 0.85
-                      }}
-                    />
-                  );
-                })}
+            <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
+                <div style={{ color: '#cbd5e1', fontSize: 12, lineHeight: 1.4 }}>
+                  {isLocked
+                    ? 'Tap stop to send, or tap trash to cancel.'
+                    : cancelArmed
+                      ? 'Release to cancel voice message.'
+                      : 'Slide up to lock, swipe left to cancel.'}
+                </div>
+                <div style={{ color: cancelArmed ? '#f87171' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>
+                  {isLocked ? 'Locked' : cancelArmed ? 'Cancel' : 'Hold'}
+                </div>
               </div>
-            </div>
 
-            {/* Trash icon to cancel */}
-            <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-              <button
-                onClick={cancelRecord}
+              <div
                 style={{
-                  flex: 1,
-                  padding: '10px 12px',
-                  borderRadius: 12,
-                  border: '1px solid #ef4444',
-                  background: '#111827',
-                  color: '#ef4444',
-                  cursor: 'pointer',
-                  fontWeight: 900,
+                  height: 44,
+                  borderRadius: 16,
+                  background: cancelArmed ? 'rgba(239,68,68,0.12)' : '#0f172a',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8
+                  padding: '0 10px',
+                  overflow: 'hidden'
                 }}
-                title="Cancel recording"
               >
-                <span style={{ fontSize: 16 }}>🗑️</span>
-                Cancel
-              </button>
-              <button
-onClick={endRecord}
-                style={{
-                  flex: 1,
-                  padding: '10px 12px',
-                  borderRadius: 12,
-                  border: '1px solid #10b981',
-                  background: '#10b981',
-                  color: 'white',
-                  cursor: 'pointer',
-                  fontWeight: 900
-                }}
-                title="Send recording"
-              >
-                Stop
-              </button>
-            </div>
-
-            {cancelArmed && (
-              <div style={{ marginTop: 8, color: '#94a3b8', fontSize: 12 }}>
-                Drag up to lock (now locked). Press trash to cancel.
+                <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', width: '100%' }}>
+                  {Array.from({ length: 26 }).map((_, i) => {
+                    const waveHeight = 10 + Math.round((Math.sin((i * 0.55) + recordMs / 400) * 12) + 12);
+                    return (
+                      <div
+                        key={i}
+                        style={{
+                          flex: 1,
+                          maxWidth: 6,
+                          height: waveHeight,
+                          borderRadius: 999,
+                          background: cancelArmed ? '#ef4444' : '#10b981',
+                          opacity: i % 2 === 0 ? 0.9 : 0.45
+                        }}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-            )}
+
+              {isLocked && (
+                <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                  <button
+                    onClick={cancelRecord}
+                    style={{
+                      flex: 1,
+                      padding: '10px 12px',
+                      borderRadius: 12,
+                      border: '1px solid #ef4444',
+                      background: '#111827',
+                      color: '#ef4444',
+                      cursor: 'pointer',
+                      fontWeight: 900,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8
+                    }}
+                    title="Cancel recording"
+                  >
+                    <span style={{ fontSize: 16 }}>🗑️</span>
+                    Cancel
+                  </button>
+                  <button
+                    onClick={endRecord}
+                    style={{
+                      flex: 1,
+                      padding: '10px 12px',
+                      borderRadius: 12,
+                      border: '1px solid #10b981',
+                      background: '#10b981',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontWeight: 900
+                    }}
+                    title="Send recording"
+                  >
+                    Stop
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
