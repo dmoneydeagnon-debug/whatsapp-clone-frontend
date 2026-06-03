@@ -82,24 +82,35 @@ function App() {
     // normalize mediaType for voice so backend + UI are consistent
     const mediaType = result.type === 'voice' || file.type?.startsWith('audio/') ? 'voice' : result.type;
 
-    socketRef.current.emit('sendMessage', {
-      receiver: selectedChat._id,
+    const messagePayload = {
+      sender: user._id,
       text: '',
       mediaUrl: result.url,
       mediaType
-    });
+    };
+
+    if (selectedChat?.isGroup) {
+      messagePayload.groupId = selectedChat._id;
+    } else {
+      messagePayload.receiver = selectedChat._id;
+    }
+
+    socketRef.current.emit('sendMessage', messagePayload);
   };
 
 
 
-  const markChatMessagesRead = (chatId) => {
+  const markChatMessagesRead = (chatId, isGroup = false) => {
     if (!socketRef.current || !chatId) return;
-    socketRef.current.emit('markAsRead', { chatId });
+    socketRef.current.emit('markAsRead', isGroup ? { groupId: chatId } : { chatId });
 
     setChatMessages((prev) => {
       const updated = { ...prev };
       const existing = updated[chatId] || [];
       updated[chatId] = existing.map((msg) => {
+        if (isGroup) {
+          return { ...msg, status: 'read', read: true };
+        }
         const isFromChatPartner = (msg.sender?.toString?.() || msg.sender) === (chatId?.toString?.() || chatId);
         return isFromChatPartner ? { ...msg, status: 'read', read: true } : msg;
       });
@@ -341,11 +352,7 @@ function App() {
     socket.on('receiveMessage', (message) => {
       const senderId = message.sender;
       const receiverId = message.receiver;
-      const chatId = senderId === user._id ? receiverId : senderId;
-      chatsRef.current.find(
-        (chat) => (chat._id?.toString?.() || chat._id) === (senderId?.toString?.() || senderId)
-      );
-
+      const chatId = message.groupId || (senderId === user._id ? receiverId : senderId);
 
       const enrichedMessage = {
         ...message,
@@ -380,7 +387,8 @@ function App() {
       );
 
       if ((selectedChatRef.current?._id?.toString?.() || selectedChatRef.current?._id) === (chatId?.toString?.() || chatId)) {
-        markChatMessagesRead(chatId);
+        const isGroupMessage = !!message.groupId;
+        markChatMessagesRead(chatId, isGroupMessage);
       }
 
       setSelectedChat((prev) =>
@@ -526,7 +534,12 @@ function App() {
 
         // directRes.data shape is already what ChatSidebar expects.
         // groupRes.data shape is created in backend/routes/groups.js (name, lastMessage, unreadCount).
-        setChats([...(directRes.data || []), ...(groupRes.data || [])]);
+        const groups = (groupRes.data || []).map((group) => ({
+          ...group,
+          isGroup: true
+        }));
+
+        setChats([...(directRes.data || []), ...groups]);
       } catch (err) {
         if (err.response?.status === 401) logout();
         else setChats([]);
@@ -727,12 +740,20 @@ function App() {
           return;
         }
 
-        socketRef.current.emit('sendMessage', {
-          receiver: selectedChat._id,
+        const messagePayload = {
+          sender: user._id,
           text: '',
           mediaUrl: result.url,
           mediaType: 'voice'
-        });
+        };
+
+        if (selectedChat?.isGroup) {
+          messagePayload.groupId = selectedChat._id;
+        } else {
+          messagePayload.receiver = selectedChat._id;
+        }
+
+        socketRef.current.emit('sendMessage', messagePayload);
       };
 
       recorder.start();
@@ -772,11 +793,18 @@ function App() {
   const sendMessage = () => {
     if (!socketRef.current || !messageText.trim() || !selectedChat || !user) return;
 
-    socketRef.current.emit('sendMessage', {
-      receiver: selectedChat._id,
-      text: messageText.trim(),
-      sender: user._id
-    });
+    const payload = {
+      sender: user._id,
+      text: messageText.trim()
+    };
+
+    if (selectedChat?.isGroup) {
+      payload.groupId = selectedChat._id;
+    } else {
+      payload.receiver = selectedChat._id;
+    }
+
+    socketRef.current.emit('sendMessage', payload);
 
     setMessageText('');
   };
